@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.redisson</groupId>
         <artifactId>redisson-parent</artifactId>
-        <version>3.9.1-SNAPSHOT</version>
+        <version>3.9.2-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
 
@@ -75,7 +75,7 @@
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>
-            <version>3.2.0.RELEASE</version>
+            <version>3.2.3.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>io.reactivex.rxjava2</groupId>

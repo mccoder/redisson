@@ -22,9 +22,14 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
+import org.redisson.api.RCountDownLatch;
 import org.redisson.api.RFuture;
 import org.redisson.api.RLock;
+import org.redisson.api.RPermitExpirableSemaphore;
+import org.redisson.api.RReadWriteLock;
+import org.redisson.api.RSemaphore;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 import org.redisson.api.SortOrder;
@@ -602,19 +607,49 @@ public class RedissonSet<V> extends RedissonExpirable implements RSet<V>, ScanIt
         return commandExecutor.writeAsync(getName(), codec, RedisCommands.SORT_TO, params.toArray());
     }
 
-    public String getLockName(Object value) {
+    public String getLockName(Object value, String suffix) {
         ByteBuf state = encode(value);
         try {
-            return suffixName(getName(value), Hash.hash128toBase64(state) + ":lock");
+            return suffixName(getName(value), Hash.hash128toBase64(state) + ":" + suffix);
         } finally {
             state.release();
         }
     }
+
+    @Override
+    public RPermitExpirableSemaphore getPermitExpirableSemaphore(V value) {
+        String lockName = getLockName(value, "permitexpirablesemaphore");
+        return new RedissonPermitExpirableSemaphore(commandExecutor, lockName, ((Redisson)redisson).getSemaphorePubSub());
+    }
+
+    @Override
+    public RSemaphore getSemaphore(V value) {
+        String lockName = getLockName(value, "semaphore");
+        return new RedissonSemaphore(commandExecutor, lockName, ((Redisson)redisson).getSemaphorePubSub());
+    }
+    
+    @Override
+    public RCountDownLatch getCountDownLatch(V value) {
+        String lockName = getLockName(value, "countdownlatch");
+        return new RedissonCountDownLatch(commandExecutor, lockName);
+    }
+    
+    @Override
+    public RLock getFairLock(V value) {
+        String lockName = getLockName(value, "fairlock");
+        return new RedissonFairLock(commandExecutor, lockName);
+    }
     
     @Override
     public RLock getLock(V value) {
-        String lockName = getLockName(value);
+        String lockName = getLockName(value, "lock");
         return new RedissonLock(commandExecutor, lockName);
+    }
+    
+    @Override
+    public RReadWriteLock getReadWriteLock(V value) {
+        String lockName = getLockName(value, "rw_lock");
+        return new RedissonReadWriteLock(commandExecutor, lockName);
     }
 
     @Override
@@ -657,5 +692,20 @@ public class RedissonSet<V> extends RedissonExpirable implements RSet<V>, ScanIt
         }
 
         return commandExecutor.readAsync(getName(), codec, RedisCommands.SORT_SET, params.toArray());
+    }
+
+    @Override
+    public Stream<V> stream(int count) {
+        return toStream(iterator(count));
+    }
+
+    @Override
+    public Stream<V> stream(String pattern, int count) {
+        return toStream(iterator(pattern, count));
+    }
+
+    @Override
+    public Stream<V> stream(String pattern) {
+        return toStream(iterator(pattern));
     }
 }

@@ -22,9 +22,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
+import org.redisson.api.RCountDownLatch;
 import org.redisson.api.RFuture;
 import org.redisson.api.RLock;
+import org.redisson.api.RPermitExpirableSemaphore;
+import org.redisson.api.RReadWriteLock;
+import org.redisson.api.RSemaphore;
 import org.redisson.api.RSet;
 import org.redisson.api.SortOrder;
 import org.redisson.api.mapreduce.RCollectionMapReduce;
@@ -49,7 +54,8 @@ import org.redisson.command.CommandAsyncExecutor;
  */
 public class RedissonSetMultimapValues<V> extends RedissonExpirable implements RSet<V> {
 
-    private static final RedisCommand<ListScanResult<Object>> EVAL_SSCAN = new RedisCommand<ListScanResult<Object>>("EVAL", new ListMultiDecoder(new LongMultiDecoder(), new ObjectListReplayDecoder(), new ListScanResultReplayDecoder()), ValueType.MAP_VALUE);
+    private static final RedisCommand<ListScanResult<Object>> EVAL_SSCAN = new RedisCommand<ListScanResult<Object>>("EVAL", 
+                new ListMultiDecoder(new LongMultiDecoder(), new ObjectListReplayDecoder(), new ListScanResultReplayDecoder()), ValueType.MAP_VALUE);
     
     private final RSet<V> set;
     private final Object key;
@@ -469,6 +475,31 @@ public class RedissonSetMultimapValues<V> extends RedissonExpirable implements R
     }
 
     @Override
+    public RCountDownLatch getCountDownLatch(V value) {
+        return set.getCountDownLatch(value);
+    }
+
+    @Override
+    public RPermitExpirableSemaphore getPermitExpirableSemaphore(V value) {
+        return set.getPermitExpirableSemaphore(value);
+    }
+
+    @Override
+    public RSemaphore getSemaphore(V value) {
+        return set.getSemaphore(value);
+    }
+
+    @Override
+    public RLock getFairLock(V value) {
+        return set.getFairLock(value);
+    }
+
+    @Override
+    public RReadWriteLock getReadWriteLock(V value) {
+        return set.getReadWriteLock(value);
+    }
+
+    @Override
     public RLock getLock(V value) {
         return set.getLock(value);
     }
@@ -743,6 +774,21 @@ public class RedissonSetMultimapValues<V> extends RedissonExpirable implements R
     public RFuture<Integer> sortToAsync(String destName, String byPattern, List<String> getPatterns, SortOrder order,
             int offset, int count) {
         return set.sortToAsync(destName, byPattern, getPatterns, order, offset, count);
+    }
+
+    @Override
+    public Stream<V> stream(int count) {
+        return toStream(iterator(count));
+    }
+
+    @Override
+    public Stream<V> stream(String pattern, int count) {
+        return toStream(iterator(pattern, count));
+    }
+
+    @Override
+    public Stream<V> stream(String pattern) {
+        return toStream(iterator(pattern));
     }
     
 }

@@ -416,5 +416,34 @@ public interface RScoredSortedSetRx<V> extends RExpirableRx, RSortableRx<Set<V>>
      */
     Flowable<Integer> union(Aggregate aggregate, Map<String, Double> nameWithWeight);
 
+    /**
+     * Removes and returns the head element waiting if necessary for an element to become available.
+     *
+     * @return the head element
+     */
+    Flowable<V> takeFirst();
+
+    /**
+     * Removes and returns the tail element waiting if necessary for an element to become available.
+     *
+     * @return the tail element
+     */
+    Flowable<V> takeLast();
+
+    /**
+     * Retrieves and removes continues stream of elements from the head. 
+     * Waits for next element become available.
+     * 
+     * @return stream of head elements
+     */
+    Flowable<V> takeFirstElements();
+
+    /**
+     * Retrieves and removes continues stream of elements from the tail. 
+     * Waits for next element become available.
+     * 
+     * @return stream of tail elements
+     */
+    Flowable<V> takeLastElements();
     
 }

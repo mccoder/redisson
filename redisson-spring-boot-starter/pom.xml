@@ -4,12 +4,12 @@
     <parent>
         <groupId>org.redisson</groupId>
         <artifactId>redisson-parent</artifactId>
-        <version>3.9.1-SNAPSHOT</version>
+        <version>3.9.2-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
 
     <properties>
-        <spring-boot.version>2.0.5.RELEASE</spring-boot.version>
+        <spring-boot.version>2.1.1.RELEASE</spring-boot.version>
     </properties>
 
     <artifactId>redisson-spring-boot-starter</artifactId>
@@ -86,6 +86,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+            <exclusions>
+              <exclusion>
+                 <groupId>redis.clients</groupId>
+                 <artifactId>jedis</artifactId>
+              </exclusion>
+              <exclusion>
+                 <groupId>io.lettuce</groupId>
+                 <artifactId>lettuce-core</artifactId>
+              </exclusion>
+            </exclusions> 
         </dependency>
 <!--
         <dependency>
@@ -101,7 +111,7 @@
 
         <dependency>
             <groupId>org.redisson</groupId>
-            <artifactId>redisson-spring-data-20</artifactId>
+            <artifactId>redisson-spring-data-21</artifactId>
             <version>${project.version}</version>
         </dependency>
 

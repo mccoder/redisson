@@ -1,4 +1,4 @@
-Redisson: Redis based In-Memory Data Grid for Java.<br/> State of the Art Redis client
+Redisson: Redis based In-Memory Data Grid for Java.<br/> State of the Art Redis Java client
 ====
 [Quick start](https://github.com/redisson/redisson#quick-start) | [Documentation](https://github.com/redisson/redisson/wiki) | [Javadocs](http://www.javadoc.io/doc/org.redisson/redisson/3.8.2) | [Changelog](https://github.com/redisson/redisson/blob/master/CHANGELOG.md) | [Code examples](https://github.com/redisson/redisson-examples) | [FAQs](https://github.com/redisson/redisson/wiki/16.-FAQ) | [Report an issue](https://github.com/redisson/redisson/issues/new) | **[Redisson PRO](https://redisson.pro)**
 
@@ -6,23 +6,23 @@ Based on high-performance async and lock-free Java Redis client and [Netty](http
 
 | Stable <br/> Release Version | Release Date | JDK Version<br/> compatibility | `CompletionStage` <br/> support | `ProjectReactor` version<br/> compatibility |
 | ------------- | ------------- | ------------| -----------| -----------|
-| 3.9.0  | 31.10.2018 | 1.8 - 11 | Yes | 3.x.x |
-| 2.14.0 | 31.10.2018 | 1.6 - 11, Android | No | 2.0.8 |
+| 3.9.1  | 21.11.2018 | 1.8 - 11, Android | Yes | 3.x.x |
+| 2.14.1 | 21.11.2018 | 1.6 - 11, Android | No | 2.0.8 |
 
 
 Features
 ================================
-* Replicated servers mode (also supports [AWS ElastiCache](http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/Replication.html) and [Azure Redis Cache](https://azure.microsoft.com/en-us/services/cache/)):
+* Replicated Redis servers mode (also supports [AWS ElastiCache](http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/Replication.html) and [Azure Redis Cache](https://azure.microsoft.com/en-us/services/cache/)):
     1. automatic master server change discovery
-* Cluster servers mode (also supports [AWS ElastiCache Cluster](http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/Clusters.html) and [Azure Redis Cache](https://azure.microsoft.com/en-us/services/cache/)):
+* Clustered Redis servers mode (also supports [AWS ElastiCache Cluster](http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/Clusters.html) and [Azure Redis Cache](https://azure.microsoft.com/en-us/services/cache/)):
     1. automatic master and slave servers discovery
     2. automatic status and topology update
     3. automatic slots change discovery
-* Sentinel servers mode: 
+* Sentinel Redis servers mode: 
     1. automatic master, slave and sentinel servers discovery
     2. automatic status and topology update
-* Master with Slave servers mode  
-* Single server mode  
+* Master with Slave Redis servers mode  
+* Single Redis server mode  
 * Thread-safe implementation  
 * [Reactive Streams](https://github.com/redisson/redisson/wiki/3.-operations-execution#32-reactive-way) API  
 * [Asynchronous](https://github.com/redisson/redisson/wiki/3.-operations-execution#31-async-way) API  
@@ -110,23 +110,23 @@ Quick start
     <dependency>
        <groupId>org.redisson</groupId>
        <artifactId>redisson</artifactId>
-       <version>3.9.0</version>
+       <version>3.9.1</version>
     </dependency>  
 
     <!-- JDK 1.6+ compatible -->
     <dependency>
        <groupId>org.redisson</groupId>
        <artifactId>redisson</artifactId>
-       <version>2.14.0</version>
+       <version>2.14.1</version>
     </dependency>
 
 
 #### Gradle
     // JDK 1.8+ compatible
-    compile 'org.redisson:redisson:3.9.0'  
+    compile 'org.redisson:redisson:3.9.1'  
 
     // JDK 1.6+ compatible
-    compile 'org.redisson:redisson:2.14.0'
+    compile 'org.redisson:redisson:2.14.1'
 
 #### Java
 
@@ -137,27 +137,27 @@ Config = ...
 // 2. Create Redisson instance
 RedissonClient redisson = Redisson.create(config);
 
-// 3. Get object you need
+// 3. Get Redis based object or service you need
 RMap<MyKey, MyValue> map = redisson.getMap("myMap");
 
 RLock lock = redisson.getLock("myLock");
 
 RExecutorService executor = redisson.getExecutorService("myExecutorService");
 
-// over 30 different objects and services ...
+// over 30 different Redis based objects and services ...
 
 ```
 
-Please consider __[Redisson PRO](https://redisson.pro)__ version for advanced features and support by SLA.
+<sub>Please consider __[Redisson PRO](https://redisson.pro)__ version for advanced features and support by SLA.</sub>
 
 Downloads
 ===============================
    
-[Redisson 3.9.0](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=org.redisson&a=redisson&v=3.9.0&e=jar),
-[Redisson node 3.9.0](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=org.redisson&a=redisson-all&v=3.9.0&e=jar)  
+[Redisson 3.9.1](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=org.redisson&a=redisson&v=3.9.1&e=jar),
+[Redisson node 3.9.1](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=org.redisson&a=redisson-all&v=3.9.1&e=jar)  
 
-[Redisson 2.14.0](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=org.redisson&a=redisson&v=2.14.0&e=jar),
-[Redisson node 2.14.0](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=org.redisson&a=redisson-all&v=2.14.0&e=jar)  
+[Redisson 2.14.1](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=org.redisson&a=redisson&v=2.14.1&e=jar),
+[Redisson node 2.14.1](https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=org.redisson&a=redisson-all&v=2.14.1&e=jar)  
 
 FAQs
 ===============================

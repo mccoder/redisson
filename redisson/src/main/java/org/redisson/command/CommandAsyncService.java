@@ -754,7 +754,7 @@ public class CommandAsyncService implements CommandAsyncExecutor {
                 int count = details.getAttempt() + 1;
                 if (log.isDebugEnabled()) {
                     log.debug("attempt {} for command {} and params {}",
-                            count, details.getCommand(), Arrays.toString(details.getParams()));
+                            count, details.getCommand(), LogHelper.toString(details.getParams()));
                 }
                 details.removeMainPromiseListener();
                 async(details.isReadOnlyMode(), details.getSource(), details.getCodec(), details.getCommand(), details.getParams(), details.getMainPromise(), count, ignoreRedirect, connFuture);
@@ -846,12 +846,10 @@ public class CommandAsyncService implements CommandAsyncExecutor {
         details.getTimeout().cancel();
 
         long timeoutTime = connectionManager.getConfig().getTimeout();
-        if (RedisCommands.BLOCKING_COMMANDS.contains(details.getCommand().getName())
-                || RedisCommands.XREAD_BLOCKING_SINGLE == details.getCommand()
-                    || RedisCommands.XREAD_BLOCKING == details.getCommand()) {
+        if (RedisCommands.BLOCKING_COMMAND_NAMES.contains(details.getCommand().getName())
+                || RedisCommands.BLOCKING_COMMANDS.contains(details.getCommand())) {
             Long popTimeout = null;
-            if (RedisCommands.XREAD_BLOCKING_SINGLE == details.getCommand()
-                    || RedisCommands.XREAD_BLOCKING == details.getCommand()) {
+            if (RedisCommands.BLOCKING_COMMANDS.contains(details.getCommand())) {
                 boolean found = false;
                 for (Object param : details.getParams()) {
                     if (found) {
@@ -975,7 +973,7 @@ public class CommandAsyncService implements CommandAsyncExecutor {
 
                 if (log.isDebugEnabled()) {
                     log.debug("connection released for command {} and params {} from slot {} using connection {}",
-                            details.getCommand(), Arrays.toString(details.getParams()), details.getSource(), connection);
+                            details.getCommand(), LogHelper.toString(details.getParams()), details.getSource(), connection);
                 }
             }
         });
@@ -1209,7 +1207,7 @@ public class CommandAsyncService implements CommandAsyncExecutor {
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("acquired connection for command {} and params {} from slot {} using node {}... {}",
-                        details.getCommand(), Arrays.toString(details.getParams()), details.getSource(), connection.getRedisClient().getAddr(), connection);
+                        details.getCommand(), LogHelper.toString(details.getParams()), details.getSource(), connection.getRedisClient().getAddr(), connection);
             }
             ChannelFuture future = connection.send(new CommandData<V, R>(details.getAttemptPromise(), details.getCodec(), details.getCommand(), details.getParams()));
             details.setWriteFuture(future);

@@ -1,9 +1,11 @@
 Spring Data Redis integration
 ===
 
-Integrates Redisson with Spring Data Redis library. Provides ability to work with Redis through `RedisTemplate` object.
+Integrates Redisson with Spring Data Redis library. Implements Spring Data's `RedisConnection` and `RedisClusterConnection` interfaces, so you could work with Redis through `RedisTemplate` object.
 
-Supports Spring Data Redis 1.6.x, 1.7.x, 1.8.x, 2.0.x
+Supports Spring Data Redis 1.6.x, 1.7.x, 1.8.x, 2.0.x, 2.1.x
+
+<sub>Please consider __[Redisson PRO](https://redisson.pro)__ version for advanced features and support by SLA.</sub>
 
 Usage
 ===
@@ -24,20 +26,24 @@ Usage
          <artifactId>redisson-spring-data-18</artifactId>
          <!-- for Spring Data Redis v.2.0.x -->
          <artifactId>redisson-spring-data-20</artifactId>
-         <version>3.8.1</version>
+         <!-- for Spring Data Redis v.2.1.x -->
+         <artifactId>redisson-spring-data-21</artifactId>
+         <version>3.9.1</version>
      </dependency>
      ```
      Gradle
 
      ```java
      // for Spring Data Redis v.1.6.x
-     compile 'org.redisson:redisson-spring-data-16:3.8.1'
+     compile 'org.redisson:redisson-spring-data-16:3.9.1'
      // for Spring Data Redis v.1.7.x
-     compile 'org.redisson:redisson-spring-data-17:3.8.1'
+     compile 'org.redisson:redisson-spring-data-17:3.9.1'
      // for Spring Data Redis v.1.8.x
-     compile 'org.redisson:redisson-spring-data-18:3.8.1'
+     compile 'org.redisson:redisson-spring-data-18:3.9.1'
      // for Spring Data Redis v.2.0.x
-     compile 'org.redisson:redisson-spring-data-20:3.8.1'
+     compile 'org.redisson:redisson-spring-data-20:3.9.1'
+     // for Spring Data Redis v.2.1.x
+     compile 'org.redisson:redisson-spring-data-21:3.9.1'
      ```  
 
 2. __For JDK 1.6+__  
@@ -52,22 +58,18 @@ Usage
          <artifactId>redisson-spring-data-17</artifactId>
          <!-- for Spring Data Redis v.1.8.x -->
          <artifactId>redisson-spring-data-18</artifactId>
-         <!-- for Spring Data Redis v.2.0.x -->
-         <artifactId>redisson-spring-data-20</artifactId>
-         <version>2.13.1</version>
+         <version>2.14.1</version>
      </dependency>
      ```
      Gradle
 
      ```java
      // for Spring Data Redis v.1.6.x
-     compile 'org.redisson:redisson-spring-data-16:2.13.1'
+     compile 'org.redisson:redisson-spring-data-16:2.14.1'
      // for Spring Data Redis v.1.7.x
-     compile 'org.redisson:redisson-spring-data-17:2.13.1'
+     compile 'org.redisson:redisson-spring-data-17:2.14.1'
      // for Spring Data Redis v.1.8.x
-     compile 'org.redisson:redisson-spring-data-18:2.13.1'
-     // for Spring Data Redis v.2.0.x
-     compile 'org.redisson:redisson-spring-data-20:2.13.1'
+     compile 'org.redisson:redisson-spring-data-18:2.14.1'
      ```  
 
 

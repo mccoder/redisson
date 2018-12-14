@@ -3,7 +3,9 @@ Spring Boot Starter
 
 Integrates Redisson with Spring Boot library. Depends on [Spring Data Redis](https://github.com/redisson/redisson/tree/master/redisson-spring-data#spring-data-redis-integration) module.
 
-Supports Spring Boot 1.3.x, 1.4.x, 1.5.x, 2.0.x
+Supports Spring Boot 1.3.x, 1.4.x, 1.5.x, 2.0.x, 2.1.x
+
+<sub>Please consider __[Redisson PRO](https://redisson.pro)__ version for advanced features and support by SLA.</sub>
 
 Usage
 ===
@@ -17,13 +19,13 @@ Usage
      <dependency>
          <groupId>org.redisson</groupId>
          <artifactId>redisson-spring-boot-starter</artifactId>
-         <version>3.8.2</version>
+         <version>3.9.1</version>
      </dependency>
      ```
      Gradle
 
      ```java
-     compile 'org.redisson:redisson-spring-boot-starter:3.8.2'
+     compile 'org.redisson:redisson-spring-boot-starter:3.9.1'
      ```  
 
 2. __For JDK 1.6+__  
@@ -33,16 +35,18 @@ Usage
      <dependency>
          <groupId>org.redisson</groupId>
          <artifactId>redisson-spring-boot-starter</artifactId>
-         <version>2.13.2</version>
+         <version>2.14.1</version>
      </dependency>
      ```
      Gradle
 
      ```java
-     compile 'org.redisson:redisson-spring-boot-starter:2.13.2'
+     compile 'org.redisson:redisson-spring-boot-starter:2.14.1'
      ```  
 
 ### 2. Add settings into `application.settings` file
+
+Common spring boot settings or Redisson settings could be used.
 
 ```properties
 # common spring boot settings
@@ -64,3 +68,4 @@ spring.redis.redisson.config=classpath:redisson.yaml
 ```
 
 ### 3. Get access to Redisson through spring bean with `RedissonClient` interface
+

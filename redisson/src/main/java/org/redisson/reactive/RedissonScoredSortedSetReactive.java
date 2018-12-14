@@ -15,7 +15,8 @@
  */
 package org.redisson.reactive;
 
-import org.reactivestreams.Publisher;
+import java.util.concurrent.Callable;
+
 import org.redisson.RedissonScoredSortedSet;
 import org.redisson.api.RFuture;
 import org.redisson.api.RScoredSortedSetAsync;
@@ -50,8 +51,26 @@ public class RedissonScoredSortedSetReactive<V>  {
     private RedissonScoredSortedSetReactive(Codec codec, CommandReactiveExecutor commandExecutor, String name, RScoredSortedSetAsync<V> instance) {
         this.instance = instance;
     }
+    
+    public Flux<V> takeFirstElements() {
+        return ElementsStream.takeElements(new Callable<RFuture<V>>() {
+            @Override
+            public RFuture<V> call() throws Exception {
+                return instance.takeFirstAsync();
+            }
+        });
+    }
+    
+    public Flux<V> takeLastElements() {
+        return ElementsStream.takeElements(new Callable<RFuture<V>>() {
+            @Override
+            public RFuture<V> call() throws Exception {
+                return instance.takeLastAsync();
+            }
+        });
+    }
 
-    private Publisher<V> scanIteratorReactive(final String pattern, final int count) {
+    private Flux<V> scanIteratorReactive(final String pattern, final int count) {
         return Flux.create(new SetReactiveIterator<V>() {
             @Override
             protected RFuture<ListScanResult<Object>> scanIterator(final RedisClient client, final long nextIterPos) {
@@ -64,20 +83,20 @@ public class RedissonScoredSortedSetReactive<V>  {
         return ((RedissonScoredSortedSet<V>)instance).getName();
     }
     
-    public Publisher<V> iterator() {
+    public Flux<V> iterator() {
         return scanIteratorReactive(null, 10);
     }
 
-    public Publisher<V> iterator(String pattern) {
+    public Flux<V> iterator(String pattern) {
         return scanIteratorReactive(pattern, 10);
     }
 
-    public Publisher<V> iterator(int count) {
+    public Flux<V> iterator(int count) {
         return scanIteratorReactive(null, count);
     }
 
-    public Publisher<V> iterator(String pattern, int count) {
+    public Flux<V> iterator(String pattern, int count) {
         return scanIteratorReactive(pattern, count);
     }
 
-            }
+}

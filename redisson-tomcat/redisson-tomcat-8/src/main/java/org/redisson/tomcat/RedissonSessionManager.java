@@ -32,7 +32,6 @@ import org.redisson.api.RedissonClient;
 import org.redisson.api.listener.MessageListener;
 import org.redisson.client.codec.Codec;
 import org.redisson.config.Config;
-import org.redisson.config.ExcludedKeysConfig;
 
 /**
  * Redisson Session Manager for Apache Tomcat
@@ -98,7 +97,7 @@ public class RedissonSessionManager extends ManagerBase {
     public void setExcludeKeys(String keys) {
         if (keys != null) {
             this.excludedKeys = new ExcludedKeysConfig();
-            log.info("Redisson exclude keys");
+            System.out.println("Redisson exclude keys");
             for (String key : keys.split(",")) {
                 log.info("Exclude key: " + key);
                 excludedKeys.add(key.trim());
@@ -125,6 +124,7 @@ public class RedissonSessionManager extends ManagerBase {
 
     @Override
     public Session createSession(String sessionId) {
+        //log.info("Create empty session:"+sessionId);
         RedissonSession session = (RedissonSession) createEmptySession();
 
         session.setNew(true);
@@ -158,6 +158,7 @@ public class RedissonSessionManager extends ManagerBase {
         Session result = super.findSession(id);
         if (result == null) {
             if (id != null) {
+                //log.info("Find session in redis:"+id);
                 Map<String, Object> attrs = new HashMap<String, Object>();
                 if (readMode == ReadMode.MEMORY) {
                     attrs = getMap(id).readAllMap();
@@ -196,7 +197,7 @@ public class RedissonSessionManager extends ManagerBase {
     @Override
     public void remove(Session session, boolean update) {
         super.remove(session, update);
-
+        //log.info("remove session:"+session.getId());
         if (session.getIdInternal() != null) {
             ((RedissonSession) session).delete();
         }
@@ -213,6 +214,7 @@ public class RedissonSessionManager extends ManagerBase {
 
         if (readMode == ReadMode.CACHE_FIRST_THAN_REDIS) {
             getEngine().getPipeline().addValve(new FlushCacheValve(this));
+            //log.info("Redisson init FlushCacheValve");
         }
 
         if (updateMode == UpdateMode.AFTER_REQUEST) {
@@ -312,7 +314,7 @@ public class RedissonSessionManager extends ManagerBase {
 
         RedissonSession sess = (RedissonSession) super.findSession(session.getId());
         if (sess != null) {
-            //log.info("Clear session " + session.toString() + " - " + sess.toString() + " == " + (sess == session));
+            //log.info("Clear session " + session.toString() + " - " + sess.toString());
             sess.clearRequestCache();
         }
     }
@@ -325,7 +327,7 @@ public class RedissonSessionManager extends ManagerBase {
         RedissonSession sess = (RedissonSession) super.findSession(session.getId());
         if (sess != null) {
             //log.info("Save session " + session.toString() + " - " + sess.toString() + " == " + (sess == session));
-            sess.clearRequestCache();
+            //sess.clearRequestCache();
             if (updateMode == UpdateMode.AFTER_REQUEST) {
                 sess.save();
             }

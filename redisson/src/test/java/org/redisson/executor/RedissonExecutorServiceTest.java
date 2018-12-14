@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -118,6 +119,7 @@ public class RedissonExecutorServiceTest extends BaseTest {
         Config config = createConfig();
         RedissonNodeConfig nodeConfig = new RedissonNodeConfig(config);
         nodeConfig.setExecutorServiceWorkers(Collections.singletonMap("test2", 1));
+        node.shutdown();
         node = RedissonNode.create(nodeConfig);
         node.start();
         
@@ -181,6 +183,7 @@ public class RedissonExecutorServiceTest extends BaseTest {
         
         RedissonNodeConfig nodeConfig = new RedissonNodeConfig(config);
         nodeConfig.setExecutorServiceWorkers(Collections.singletonMap("test2", 1));
+        node.shutdown();
         node = RedissonNode.create(nodeConfig);
         node.start();
 
@@ -234,6 +237,7 @@ public class RedissonExecutorServiceTest extends BaseTest {
         Config config = createConfig();
         RedissonNodeConfig nodeConfig = new RedissonNodeConfig(config);
         nodeConfig.setExecutorServiceWorkers(Collections.singletonMap("test2", 1));
+        node.shutdown();
         node = RedissonNode.create(nodeConfig);
         node.start();
         
@@ -512,7 +516,7 @@ public class RedissonExecutorServiceTest extends BaseTest {
         redisson.getExecutorService("test").submit(new TaskCallableClass());
     }
 
-    public static class TaskStaticCallableClass implements Callable<String> {
+    public static class TaskStaticCallableClass implements Callable<String>, Serializable {
 
         @Override
         public String call() throws Exception {
@@ -527,7 +531,7 @@ public class RedissonExecutorServiceTest extends BaseTest {
         assertThat(res).isEqualTo("123");
     }
     
-    public class TaskRunnableClass implements Runnable {
+    public class TaskRunnableClass implements Runnable, Serializable {
 
         @Override
         public void run() {
@@ -540,7 +544,7 @@ public class RedissonExecutorServiceTest extends BaseTest {
         redisson.getExecutorService("test").submit(new TaskRunnableClass());
     }
 
-    public static class TaskStaticRunnableClass implements Runnable {
+    public static class TaskStaticRunnableClass implements Runnable, Serializable {
 
         @Override
         public void run() {

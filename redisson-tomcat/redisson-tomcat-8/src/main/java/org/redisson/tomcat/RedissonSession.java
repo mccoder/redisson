@@ -30,7 +30,6 @@ import org.apache.juli.logging.LogFactory;
 import org.redisson.api.RMap;
 import org.redisson.api.RTopic;
 import org.redisson.client.RedisException;
-import org.redisson.config.ExcludedKeysConfig;
 import org.redisson.tomcat.RedissonSessionManager.ReadMode;
 import org.redisson.tomcat.RedissonSessionManager.UpdateMode;
 
@@ -57,6 +56,7 @@ public class RedissonSession extends StandardSession {
     private final Map<String, Object> attrs;
     private final ExcludedKeysConfig excludeKeys;
     private final boolean existExcludedKeys;
+    private final boolean redisReadMode;
     private RMap<String, Object> map;
     private RTopic topic;
     private final RedissonSessionManager.ReadMode readMode;
@@ -68,6 +68,7 @@ public class RedissonSession extends StandardSession {
         super(manager);
         this.redissonManager = manager;
         this.readMode = readMode;
+        this.redisReadMode = readMode == ReadMode.REDIS;
         this.updateMode = updateMode;
 
         try {
@@ -94,28 +95,33 @@ public class RedissonSession extends StandardSession {
     @Override
     public Object getAttribute(String name) {
         if (!skipWriteKeyInRedis(name)) {
-            switch (readMode) {
-                case CACHE_FIRST_THAN_REDIS: {
-                    Object result = requestCache.get(name);
-                    if (result != null) {
-                        //LOG.info("Read from cache '" + name + "'");
-                        return result;
-                    }
+            if (requestCache != null) {
+                final Object result = requestCache.get(name);
+                if (result != null) {
+                    //LOG.info("Read from cache '" + name + "'");
+                    return result;
                 }
-                case REDIS:
-                    try {
-                        final Object result = map.get(name);
-                        if (requestCache != null) {
-                            requestCache.put(name, result);
-                        }
-                        if (result != null) {
-                            //LOG.info("Read from redis '" + name + "' " + result.getClass());
-                        }
-                        return result;
-                    } catch (RedisException e) {
-                        LOG.error("Error read from redis '" + name + "'", e);
+            }
+            if (redisReadMode) {
+                //If in session contains non serializable object
+                //Return object from session, except Redis.
+                final Object resFromSession = super.getAttribute(name);
+                if (resFromSession != null && !(resFromSession instanceof Serializable)) {
+                    LOG.warn("Read non serializable from session '" + name + "' " + resFromSession.getClass());
+                    return resFromSession;
+                }
+                try {
+                    final Object result = map.get(name);
+                    if (requestCache != null) {
+                        requestCache.put(name, result);
                     }
-                    break;
+                    if (result != null) {
+                        //LOG.info("Read from redis '" + name + "' " + result.getClass());
+                    }
+                    return result;
+                } catch (RedisException e) {
+                    LOG.error("Error read from redis '" + name + "'", e);
+                }
             }
         }
         return super.getAttribute(name);
@@ -197,8 +203,11 @@ public class RedissonSession extends StandardSession {
                 //LOG.info("WriteSkip " + name);
                 return;
             }
+            requestCache.put(name, value);
         }
-        //LOG.info("Write '" + name + "'=[" + (value instanceof Serializable) + "] " + value.getClass());
+//        if (!name.startsWith("session:")) {
+//            LOG.info("Write '" + name + "'=[" + (value instanceof Serializable) + "] " + value.getClass());
+//        }
         try {
             map.fastPut(name, value);
             if (readMode == ReadMode.MEMORY) {
@@ -250,7 +259,11 @@ public class RedissonSession extends StandardSession {
         super.setAttribute(name, value, notify);
 
         if (value != null && !skipWriteKeyInRedis(name) && map != null) {
-            fastPut(name, value);
+            if (value instanceof Serializable) {
+                fastPut(name, value);
+            } else if (value != null) {
+                System.out.println("Redisson skip not serializable " + name + " " + value.getClass().getName());
+            }
         }
     }
 
@@ -292,10 +305,10 @@ public class RedissonSession extends StandardSession {
 
             for (Entry<String, Object> entry : attrs.entrySet()) {
                 final String key = entry.getKey();
-                if (skipWriteKeyInRedis(key)) {
+                final Object value = entry.getValue();
+                if (skipWriteKeyInRedis(key) || !(value instanceof Serializable)) {
                     continue;
                 }
-                final Object value = entry.getValue();
                 newMap.put(key, value);
                 savedKeys.add(key);
 

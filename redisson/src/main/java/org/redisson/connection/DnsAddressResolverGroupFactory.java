@@ -15,8 +15,6 @@
  */
 package org.redisson.connection;
 
-import org.redisson.connection.dns.MultiDnsAddressResolverGroup;
-
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.resolver.dns.DnsAddressResolverGroup;
 import io.netty.resolver.dns.DnsServerAddressStreamProvider;
@@ -32,9 +30,7 @@ public class DnsAddressResolverGroupFactory implements AddressResolverGroupFacto
     @Override
     public DnsAddressResolverGroup create(Class<? extends DatagramChannel> channelType,
             DnsServerAddressStreamProvider nameServerProvider) {
-        // Workaround for https://github.com/netty/netty/issues/8261
-        return new MultiDnsAddressResolverGroup(channelType, nameServerProvider);
-//        return new DnsAddressResolverGroup(channelType, nameServerProvider);
+        return new DnsAddressResolverGroup(channelType, nameServerProvider);
     }
 
 }
