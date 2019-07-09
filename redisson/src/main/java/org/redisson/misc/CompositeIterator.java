@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,44 +23,44 @@ import java.util.NoSuchElementException;
  */
 public class CompositeIterator<T> implements Iterator<T> {
 
-	private Iterator<Iterator<T>> listIterator;
-	private Iterator<T> currentIterator;
+    private Iterator<Iterator<T>> listIterator;
+    private Iterator<T> currentIterator;
 
-	public CompositeIterator(Iterator<Iterator<T>> iterators) {
-		listIterator = iterators;
-	}
+    public CompositeIterator(Iterator<Iterator<T>> iterators) {
+        listIterator = iterators;
+    }
 
-	@Override
-	public boolean hasNext() {
-		if (currentIterator == null || !currentIterator.hasNext()) {
-			while (listIterator.hasNext()) {
-				Iterator<T> iterator = listIterator.next();
-				currentIterator = iterator;
-				if (iterator.hasNext()) {
-					return true;
-				}
-			}
-			return false;
-		}
+    @Override
+    public boolean hasNext() {
+        if (currentIterator == null || !currentIterator.hasNext()) {
+            while (listIterator.hasNext()) {
+                Iterator<T> iterator = listIterator.next();
+                currentIterator = iterator;
+                if (iterator.hasNext()) {
+                    return true;
+                }
+            }
+            return false;
+        }
 
-		return currentIterator.hasNext();
-	}
+        return currentIterator.hasNext();
+    }
 
-	@Override
-	public T next() {
-		if (!hasNext()) {
-			throw new NoSuchElementException();
-		}
+    @Override
+    public T next() {
+        if (!hasNext()) {
+            throw new NoSuchElementException();
+        }
 
-		return currentIterator.next();
-	}
+        return currentIterator.next();
+    }
 
-	@Override
-	public void remove() {
-		if (currentIterator == null) {
-			throw new IllegalStateException("next() has not yet been called");
-		}
+    @Override
+    public void remove() {
+        if (currentIterator == null) {
+            throw new IllegalStateException("next() has not yet been called");
+        }
 
-		currentIterator.remove();
-	}
+        currentIterator.remove();
+    }
 }

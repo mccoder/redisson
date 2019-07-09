@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public interface RBlockingDequeReactive<V> extends RDequeReactive<V>, RBlockingQ
      * @return the head of this queue, or {@code null} if the
      *         specified waiting time elapses before an element is available
      */
-    Mono<V> pollFirstFromAny(long timeout, TimeUnit unit, String ... queueNames);
+    Mono<V> pollFirstFromAny(long timeout, TimeUnit unit, String... queueNames);
 
     /**
      * Retrieves and removes first available tail element of <b>any</b> queue in reactive mode,
@@ -56,7 +56,7 @@ public interface RBlockingDequeReactive<V> extends RDequeReactive<V>, RBlockingQ
      * @return the head of this queue, or {@code null} if the
      *         specified waiting time elapses before an element is available
      */
-    Mono<V> pollLastFromAny(long timeout, TimeUnit unit, String ... queueNames);
+    Mono<V> pollLastFromAny(long timeout, TimeUnit unit, String... queueNames);
 
     /**
      * Adds value to the head of queue.

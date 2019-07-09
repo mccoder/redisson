@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
  */
 package org.redisson;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import io.netty.util.internal.PlatformDependent;
 
 /**
  * 
@@ -26,7 +25,7 @@ import io.netty.util.internal.PlatformDependent;
  */
 public class QueueTransferService {
 
-    private final ConcurrentMap<String, QueueTransferTask> tasks = PlatformDependent.newConcurrentHashMap();
+    private final ConcurrentMap<String, QueueTransferTask> tasks = new ConcurrentHashMap<>();
     
     public synchronized void schedule(String name, QueueTransferTask task) {
         QueueTransferTask oldTask = tasks.putIfAbsent(name, task);

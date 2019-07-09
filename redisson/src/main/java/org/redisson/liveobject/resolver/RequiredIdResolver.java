@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ import org.redisson.api.annotation.RId;
  * @author Nikita Koksharov
  *
  */
-public class RequiredIdResolver implements RIdResolver<RId, Object> {
+public class RequiredIdResolver implements RIdResolver<Object> {
     
     public static final RequiredIdResolver INSTANCE = new RequiredIdResolver();
 
     @Override
-    public Object resolve(Class cls, RId annotation, String idFieldName, RedissonClient redisson) {
+    public Object resolve(Class<?> cls, RId annotation, String idFieldName, RedissonClient redisson) {
         throw new IllegalArgumentException("id value not defined for instance of " + cls);
     }
 

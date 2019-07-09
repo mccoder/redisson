@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,16 +63,16 @@ public class RedisCommand<R> {
     }
 
     public RedisCommand(String name) {
-        this(name, (String)null);
+        this(name, (String) null);
     }
 
     public RedisCommand(String name, ValueType outParamType) {
-        this(name, (String)null);
+        this(name, (String) null);
         this.outParamType = outParamType;
     }
 
     public RedisCommand(String name, ValueType outParamType, Convertor<R> convertor) {
-        this(name, (String)null);
+        this(name, (String) null);
         this.outParamType = outParamType;
         this.convertor = convertor;
     }
@@ -145,9 +145,14 @@ public class RedisCommand<R> {
         return outParamType;
     }
 
-    @Override
     public String toString() {
-        return "(" + name + (subName != null ? " " + subName : "") + ")";
+        StringBuilder str = new StringBuilder();
+        str.append("(").append(name);
+        if (subName != null) {
+            str.append(" ").append(subName);
+        }
+        str.append(")");
+        return str.toString();
     }
 
 }

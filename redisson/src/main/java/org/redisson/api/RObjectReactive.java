@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,4 +156,23 @@ public interface RObjectReactive {
      */
     Mono<Boolean> isExists();
 
+    /**
+     * Adds object event listener
+     * 
+     * @see org.redisson.api.ExpiredObjectListener
+     * @see org.redisson.api.DeletedObjectListener
+     * 
+     * @param listener - object event listener
+     * @return listener id
+     */
+    Mono<Integer> addListener(ObjectListener listener);
+
+    /**
+     * Removes object event listener
+     * 
+     * @param listenerId - listener id
+     * @return void
+     */
+    Mono<Void> removeListener(int listenerId);
+    
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.redisson.client.codec.Codec;
 
-import io.reactivex.Flowable;
+import io.reactivex.Maybe;
 
 /**
  * RxJava2 interface for Redis pipeline feature.
@@ -366,7 +366,7 @@ public interface RBatchRx {
      *
      * @return List with result object for each command
      */
-    Flowable<BatchResult<?>> execute();
+    Maybe<BatchResult<?>> execute();
 
     /*
      * Use BatchOptions#atomic

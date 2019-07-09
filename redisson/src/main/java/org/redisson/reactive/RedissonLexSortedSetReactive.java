@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public class RedissonLexSortedSetReactive {
         return new PublisherAdder<String>() {
             @Override
             public RFuture<Boolean> add(Object e) {
-                return instance.addAsync((String)e);
+                return instance.addAsync((String) e);
             }
         }.addAll(c);
     }
@@ -51,7 +51,7 @@ public class RedissonLexSortedSetReactive {
         return Flux.create(new SetReactiveIterator<String>() {
             @Override
             protected RFuture<ListScanResult<Object>> scanIterator(final RedisClient client, final long nextIterPos) {
-                return ((RedissonScoredSortedSet<String>)instance).scanIteratorAsync(client, nextIterPos, pattern, count);
+                return ((RedissonScoredSortedSet<String>) instance).scanIteratorAsync(client, nextIterPos, pattern, count);
             }
         });
     }

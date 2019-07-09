@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public interface RExecutorService extends ExecutorService, RExecutorServiceAsync
      * @param tasks - tasks to execute
      * @return Future object
      */
-    RExecutorBatchFuture submit(Callable<?> ...tasks);
+    RExecutorBatchFuture submit(Callable<?>...tasks);
     
     /**
      * Submits a Runnable task for execution and returns a Future
@@ -86,7 +86,7 @@ public interface RExecutorService extends ExecutorService, RExecutorServiceAsync
      * @param tasks - tasks to execute
      * @return Future object
      */
-    RExecutorBatchFuture submit(Runnable ...tasks);
+    RExecutorBatchFuture submit(Runnable...tasks);
     
     /**
      * Returns executor name
@@ -141,6 +141,6 @@ public interface RExecutorService extends ExecutorService, RExecutorServiceAsync
      * 
      * @param tasks - tasks to execute
      */
-    void execute(Runnable ...tasks);
+    void execute(Runnable...tasks);
 
 }

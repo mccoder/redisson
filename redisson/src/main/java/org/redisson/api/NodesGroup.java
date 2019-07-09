@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.redisson.api;
 
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 import org.redisson.connection.ConnectionListener;
 
@@ -67,10 +68,18 @@ public interface NodesGroup<N extends Node> {
     Collection<N> getNodes();
 
     /**
-     * Ping all Redis nodes
+     * Ping all Redis nodes.
+     * Default timeout per Redis node is 1000 milliseconds
      *
-     * @return <code>true</code> if all nodes have replied "PONG", <code>false</code> in other case.
+     * @return <code>true</code> if all nodes replied "PONG", <code>false</code> in other case.
      */
     boolean pingAll();
+
+    /**
+     * Ping all Redis nodes with specified timeout per node
+     *
+     * @return <code>true</code> if all nodes replied "PONG", <code>false</code> in other case.
+     */
+    boolean pingAll(long timeout, TimeUnit timeUnit);
 
 }

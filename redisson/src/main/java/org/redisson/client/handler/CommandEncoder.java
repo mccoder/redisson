@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ package org.redisson.client.handler;
 
 import org.redisson.client.ChannelName;
 import org.redisson.client.protocol.CommandData;
+import org.redisson.client.protocol.RedisCommands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,7 +105,11 @@ public class CommandEncoder extends MessageToByteEncoder<CommandData<?, ?>> {
             }
             
             if (log.isTraceEnabled()) {
-                log.trace("channel: {} message: {}", ctx.channel(), out.toString(CharsetUtil.UTF_8));
+                String info = out.toString(CharsetUtil.UTF_8);
+                if (RedisCommands.AUTH.equals(msg.getCommand())) {
+                    info = info.substring(0, info.indexOf(RedisCommands.AUTH.getName()) + RedisCommands.AUTH.getName().length()) + "(password masked)";
+                }
+                log.trace("channel: {} message: {}", ctx.channel(), info);
             }
         } catch (Exception e) {
             msg.tryFailure(e);
@@ -114,13 +119,13 @@ public class CommandEncoder extends MessageToByteEncoder<CommandData<?, ?>> {
 
     private ByteBuf encode(Object in) {
         if (in instanceof byte[]) {
-            return Unpooled.wrappedBuffer((byte[])in);
+            return Unpooled.wrappedBuffer((byte[]) in);
         }
         if (in instanceof ByteBuf) {
             return (ByteBuf) in;
         }
         if (in instanceof ChannelName) {
-            return Unpooled.wrappedBuffer(((ChannelName)in).getName());
+            return Unpooled.wrappedBuffer(((ChannelName) in).getName());
         }
 
         String payload = in.toString();

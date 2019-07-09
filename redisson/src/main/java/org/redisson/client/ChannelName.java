@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class ChannelName implements CharSequence {
             return true;
         }
         if (obj instanceof ChannelName) {
-            return Arrays.equals(name, ((ChannelName)obj).name);
+            return Arrays.equals(name, ((ChannelName) obj).name);
         }
         if (obj instanceof CharSequence) {
             return toString().equals(obj);

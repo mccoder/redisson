@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,5 +139,12 @@ public interface RRateLimiter extends RRateLimiterAsync, RObject {
      *         if the waiting time elapsed before a permit was acquired
      */
     boolean tryAcquire(long permits, long timeout, TimeUnit unit);
+
+    /**
+     * Returns current configuration of this RateLimiter object.
+     * 
+     * @return config object
+     */
+    RateLimiterConfig getConfig();
     
 }

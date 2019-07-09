@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.redisson.spring.data.connection;
 
-import org.redisson.client.protocol.convertor.SingleConvertor;
+import org.redisson.client.protocol.convertor.Convertor;
 import org.springframework.data.redis.connection.DataType;
 
 /**
@@ -23,7 +23,7 @@ import org.springframework.data.redis.connection.DataType;
  * @author Nikita Koksharov
  *
  */
-public class DataTypeConvertor extends SingleConvertor<DataType> {
+public class DataTypeConvertor implements Convertor<DataType> {
 
     @Override
     public DataType convert(Object obj) {

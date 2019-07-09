@@ -27,7 +27,10 @@ import org.redisson.api.RedissonClient;
 import org.redisson.api.map.MapLoader;
 import org.redisson.api.map.MapWriter;
 import org.redisson.client.codec.Codec;
+import org.redisson.client.codec.DoubleCodec;
+import org.redisson.client.codec.IntegerCodec;
 import org.redisson.client.codec.StringCodec;
+import org.redisson.codec.CompositeCodec;
 import org.redisson.codec.JsonJacksonCodec;
 import org.redisson.config.Config;
 
@@ -441,9 +444,7 @@ public abstract class BaseMapTest extends BaseTest {
     
     @Test(timeout = 5000)
     public void testDeserializationErrorReturnsErrorImmediately() throws Exception {
-        redisson.getConfig().setCodec(new JsonJacksonCodec());
-
-        RMap<String, SimpleObjectWithoutDefaultConstructor> map = getMap("deserializationFailure");
+        RMap<String, SimpleObjectWithoutDefaultConstructor> map = getMap("deserializationFailure", new JsonJacksonCodec());
         Assume.assumeTrue(!(map instanceof RLocalCachedMap));
         SimpleObjectWithoutDefaultConstructor object = new SimpleObjectWithoutDefaultConstructor("test-val");
 
@@ -948,7 +949,7 @@ public abstract class BaseMapTest extends BaseTest {
     
     @Test
     public void testAddAndGet() throws InterruptedException {
-        RMap<Integer, Integer> map = getMap("getAll");
+        RMap<Integer, Integer> map = getMap("getAll", new CompositeCodec(redisson.getConfig().getCodec(), IntegerCodec.INSTANCE));
         map.put(1, 100);
 
         Integer res = map.addAndGet(1, 12);
@@ -956,7 +957,7 @@ public abstract class BaseMapTest extends BaseTest {
         res = map.get(1);
         assertThat(res).isEqualTo(112);
 
-        RMap<Integer, Double> map2 = getMap("getAll2");
+        RMap<Integer, Double> map2 = getMap("getAll2", new CompositeCodec(redisson.getConfig().getCodec(), DoubleCodec.INSTANCE));
         map2.put(1, new Double(100.2));
 
         Double res2 = map2.addAndGet(1, new Double(12.1));
@@ -964,7 +965,7 @@ public abstract class BaseMapTest extends BaseTest {
         res2 = map2.get(1);
         assertThat(res2).isEqualTo(112.3);
 
-        RMap<String, Integer> mapStr = getMap("mapStr");
+        RMap<String, Integer> mapStr = getMap("mapStr", new CompositeCodec(redisson.getConfig().getCodec(), IntegerCodec.INSTANCE));
         assertThat(mapStr.put("1", 100)).isNull();
 
         assertThat(mapStr.addAndGet("1", 12)).isEqualTo(112);
@@ -977,6 +978,8 @@ public abstract class BaseMapTest extends BaseTest {
     protected abstract <K, V> RMap<K, V> getMap(String name, Codec codec);
     
     protected abstract <K, V> RMap<K, V> getWriterTestMap(String name, Map<K, V> map);
+    
+    protected abstract <K, V> RMap<K, V> getWriteBehindTestMap(String name, Map<K, V> map);
     
     protected abstract <K, V> RMap<K, V> getLoaderTestMap(String name, Map<K, V> map);
 
@@ -995,7 +998,7 @@ public abstract class BaseMapTest extends BaseTest {
     }
     
     @Test
-    public void testWriterAddAndGet() {
+    public void testWriterAddAndGet() throws InterruptedException {
         Map<String, Integer> store = new HashMap<>();
         RMap<String, Integer> map = getWriterTestMap("test", store);
 
@@ -1004,6 +1007,26 @@ public abstract class BaseMapTest extends BaseTest {
         
         Map<String, Integer> expected = new HashMap<>();
         expected.put("1", 18);
+        assertThat(store).isEqualTo(expected);
+        destroy(map);
+    }
+
+    @Test
+    public void testWriteBehindFastRemove() throws InterruptedException {
+        Map<String, String> store = new HashMap<>();
+        RMap<String, String> map = getWriteBehindTestMap("test", store);
+
+        map.put("1", "11");
+        map.put("2", "22");
+        map.put("3", "33");
+        
+        Thread.sleep(1400);
+        
+        map.fastRemove("1", "2", "4");
+        
+        Map<String, String> expected = new HashMap<>();
+        expected.put("3", "33");
+        Thread.sleep(1400);
         assertThat(store).isEqualTo(expected);
         destroy(map);
     }
@@ -1231,25 +1254,17 @@ public abstract class BaseMapTest extends BaseTest {
         return new MapWriter<K, V>() {
 
             @Override
-            public void write(K key, V value) {
-                map.put(key, value);
-            }
-
-            @Override
-            public void writeAll(Map<K, V> values) {
+            public void write(Map<K, V> values) {
                 map.putAll(values);
+                System.out.println("map " + map);
             }
 
             @Override
-            public void delete(K key) {
-                map.remove(key);
-            }
-
-            @Override
-            public void deleteAll(Collection<K> keys) {
+            public void delete(Collection<K> keys) {
                 for (K key : keys) {
                     map.remove(key);
                 }
+                System.out.println("delete " + keys + " map " + map);
             }
             
         };

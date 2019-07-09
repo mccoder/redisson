@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.redisson.spring.data.connection;
 
-import org.redisson.client.protocol.convertor.SingleConvertor;
+import org.redisson.client.protocol.convertor.Convertor;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metric;
 
@@ -24,7 +24,7 @@ import org.springframework.data.geo.Metric;
  * @author Nikita Koksharov
  *
  */
-public class DistanceConvertor extends SingleConvertor<Distance> {
+public class DistanceConvertor implements Convertor<Distance> {
 
     private final Metric metric;
     

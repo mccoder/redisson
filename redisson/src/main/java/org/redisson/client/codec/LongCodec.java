@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ public class LongCodec extends StringCodec {
 
     public static final LongCodec INSTANCE = new LongCodec();
 
-    public final Decoder<Object> decoder = new Decoder<Object>() {
+    private final Decoder<Object> decoder = new Decoder<Object>() {
         @Override
         public Object decode(ByteBuf buf, State state) throws IOException {
             String str = (String) LongCodec.super.getValueDecoder().decode(buf, state);

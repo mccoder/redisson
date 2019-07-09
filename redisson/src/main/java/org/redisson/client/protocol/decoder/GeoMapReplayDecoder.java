@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public class GeoMapReplayDecoder implements MultiDecoder<Map<Object, Object>> {
     public Map<Object, Object> decode(List<Object> parts, State state) {
         Map<Object, Object> result = new LinkedHashMap<Object, Object>(parts.size());
         for (Object object : parts) {
-            List<Object> vals = ((List<Object>) object);
+            List<Object> vals = (List<Object>) object;
             result.put(vals.get(0), vals.get(1));
         }
         return result;

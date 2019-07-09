@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public class AsyncSemaphore {
         private Runnable runnable;
         private int permits;
         
-        public Entry(Runnable runnable, int permits) {
+        Entry(Runnable runnable, int permits) {
             super();
             this.runnable = runnable;
             this.permits = permits;
@@ -48,6 +48,7 @@ public class AsyncSemaphore {
         }
 
         @Override
+        @SuppressWarnings("AvoidInlineConditionals")
         public int hashCode() {
             final int prime = 31;
             int result = 1;
@@ -161,7 +162,7 @@ public class AsyncSemaphore {
             Iterator<Entry> iter = listeners.iterator();
             if (iter.hasNext()) {
                 Entry entry = iter.next();
-                if (entry.getPermits() >= counter) {
+                if (entry.getPermits() <= counter) {
                     iter.remove();
                     entryToAcquire = entry;
                 }
@@ -175,7 +176,7 @@ public class AsyncSemaphore {
 
     @Override
     public String toString() {
-        return String.valueOf(counter);
+        return "value:" + counter + ":queue:" + queueSize();
     }
     
     

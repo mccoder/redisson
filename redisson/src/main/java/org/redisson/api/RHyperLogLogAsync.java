@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public interface RHyperLogLogAsync<V> extends RExpirableAsync {
      * @param otherLogNames - name of instances
      * @return number
      */
-    RFuture<Long> countWithAsync(String ... otherLogNames);
+    RFuture<Long> countWithAsync(String... otherLogNames);
 
     /**
      * Merges multiple instances into this instance.
@@ -67,6 +67,6 @@ public interface RHyperLogLogAsync<V> extends RExpirableAsync {
      * @param otherLogNames - name of instances
      * @return void
      */
-    RFuture<Void> mergeWithAsync(String ... otherLogNames);
+    RFuture<Void> mergeWithAsync(String... otherLogNames);
 
 }

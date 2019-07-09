@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,6 @@ import org.redisson.api.RExecutorBatchFuture;
 import org.redisson.api.RExecutorFuture;
 import org.redisson.misc.RedissonPromise;
 
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.FutureListener;
-
 /**
  * 
  * @author Nikita Koksharov
@@ -39,17 +36,14 @@ public class RedissonExecutorBatchFuture extends RedissonPromise<Void> implement
         
         final AtomicInteger counter = new AtomicInteger(futures.size());
         for (RExecutorFuture<?> future : futures) {
-            future.addListener(new FutureListener<Object>() {
-                @Override
-                public void operationComplete(Future<Object> future) throws Exception {
-                    if (!future.isSuccess()) {
-                        RedissonExecutorBatchFuture.this.tryFailure(future.cause());
-                        return;
-                    }
-                    
-                    if (counter.decrementAndGet() == 0) {
-                        RedissonExecutorBatchFuture.this.trySuccess(null);
-                    }
+            future.onComplete((res, e) -> {
+                if (e != null) {
+                    RedissonExecutorBatchFuture.this.tryFailure(e);
+                    return;
+                }
+                
+                if (counter.decrementAndGet() == 0) {
+                    RedissonExecutorBatchFuture.this.trySuccess(null);
                 }
             });
         }

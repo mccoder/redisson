@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,10 @@ import java.util.TreeSet;
  * @author Contributions from Mads Henderson
  * @author Refactoring from CronTrigger to CronExpression by Aaron Craven
  */
+@SuppressWarnings({"EmptyStatement", "InnerAssignment", "ConstantName", 
+    "BooleanExpressionComplexity", "NestedIfDepth", "ParenPad", 
+    "MethodLength", "WhitespaceAfter", "NoClone", "UnnecessaryParentheses", "AvoidInlineConditionals",
+    "EqualsAvoidNull", "OneStatementPerLine"})
 public final class CronExpression implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 12423409423L;
@@ -1499,6 +1503,7 @@ public final class CronExpression implements Serializable, Cloneable {
     }
 }
 
+@SuppressWarnings("VisibilityModifier")
 class ValueSet {
     public int value;
 

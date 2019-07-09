@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
  */
 package org.redisson.connection;
 
-import java.net.URI;
-
 import org.redisson.client.RedisClient;
+import org.redisson.misc.RedisURI;
 
 /**
  * 
@@ -29,7 +28,7 @@ public class NodeSource {
     public enum Redirect {MOVED, ASK}
 
     private Integer slot;
-    private URI addr;
+    private RedisURI addr;
     private RedisClient redisClient;
     private Redirect redirect;
     private MasterSlaveEntry entry;
@@ -52,7 +51,7 @@ public class NodeSource {
         this.redisClient = redisClient;
     }
     
-    public NodeSource(Integer slot, URI addr, Redirect redirect) {
+    public NodeSource(Integer slot, RedisURI addr, Redirect redirect) {
         this.slot = slot;
         this.addr = addr;
         this.redirect = redirect;
@@ -74,7 +73,7 @@ public class NodeSource {
         return redisClient;
     }
     
-    public URI getAddr() {
+    public RedisURI getAddr() {
         return addr;
     }
 

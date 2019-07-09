@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -138,17 +138,17 @@ public interface RSortableAsync<V> {
     <T> RFuture<Collection<T>> readSortAlphaAsync(String byPattern, List<String> getPatterns, SortOrder order);
 
     /**
-	 * Read data in sorted view lexicographically
-	 *
-	 * @param <T> object type
-	 * @param byPattern that is used to generate the keys that are used for sorting
-	 * @param getPatterns that is used to load values by keys in sorted view
-	 * @param order for sorted data
-	 * @param offset of sorted data
-	 * @param count of sorted data
-	 * @return sorted collection lexicographically
-	 */
-	<T> RFuture<Collection<T>> readSortAlphaAsync(String byPattern, List<String> getPatterns, SortOrder order, int offset, int count);
+     * Read data in sorted view lexicographically
+     *
+     * @param <T> object type
+     * @param byPattern that is used to generate the keys that are used for sorting
+     * @param getPatterns that is used to load values by keys in sorted view
+     * @param order for sorted data
+     * @param offset of sorted data
+     * @param count of sorted data
+     * @return sorted collection lexicographically
+     */
+    <T> RFuture<Collection<T>> readSortAlphaAsync(String byPattern, List<String> getPatterns, SortOrder order, int offset, int count);
 
     /**
      * Sort data and store to <code>destName</code> list

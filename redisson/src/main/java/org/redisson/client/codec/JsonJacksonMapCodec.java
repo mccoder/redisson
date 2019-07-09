@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public class JsonJacksonMapCodec extends JsonJacksonCodec {
             ByteBuf out = ByteBufAllocator.DEFAULT.buffer();
             try {
                 ByteBufOutputStream os = new ByteBufOutputStream(out);
-                mapObjectMapper.writeValue((OutputStream)os, in);
+                mapObjectMapper.writeValue((OutputStream) os, in);
                 return os.buffer();
             } catch (IOException e) {
                 out.release();
@@ -65,9 +65,9 @@ public class JsonJacksonMapCodec extends JsonJacksonCodec {
         @Override
         public Object decode(ByteBuf buf, State state) throws IOException {
             if (valueClass != null) {
-                return mapObjectMapper.readValue((InputStream)new ByteBufInputStream(buf), valueClass);
+                return mapObjectMapper.readValue((InputStream) new ByteBufInputStream(buf), valueClass);
             }
-            return mapObjectMapper.readValue((InputStream)new ByteBufInputStream(buf), valueTypeReference);
+            return mapObjectMapper.readValue((InputStream) new ByteBufInputStream(buf), valueTypeReference);
         }
     };
     
@@ -75,9 +75,9 @@ public class JsonJacksonMapCodec extends JsonJacksonCodec {
         @Override
         public Object decode(ByteBuf buf, State state) throws IOException {
             if (keyClass != null) {
-                return mapObjectMapper.readValue((InputStream)new ByteBufInputStream(buf), keyClass);
+                return mapObjectMapper.readValue((InputStream) new ByteBufInputStream(buf), keyClass);
             }
-            return mapObjectMapper.readValue((InputStream)new ByteBufInputStream(buf), keyTypeReference);
+            return mapObjectMapper.readValue((InputStream) new ByteBufInputStream(buf), keyTypeReference);
         }
     };
 
@@ -95,6 +95,10 @@ public class JsonJacksonMapCodec extends JsonJacksonCodec {
     
     public JsonJacksonMapCodec(TypeReference<?> keyTypeReference, TypeReference<?> valueTypeReference, ObjectMapper mapper) {
         this(keyTypeReference, valueTypeReference, null, null, mapper);
+    }
+    
+    public JsonJacksonMapCodec(ClassLoader classLoader, JsonJacksonMapCodec codec) {
+        this(codec.keyTypeReference, codec.valueTypeReference, codec.keyClass, codec.valueClass, createObjectMapper(classLoader, codec.mapObjectMapper.copy()));
     }
 
     JsonJacksonMapCodec(TypeReference<?> keyTypeReference, TypeReference<?> valueTypeReference, Class<?> keyClass, Class<?> valueClass, ObjectMapper mapper) {

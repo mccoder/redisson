@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,14 @@
 package org.redisson.misc;
 
 import java.util.concurrent.atomic.AtomicInteger;
-
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.FutureListener;
+import java.util.function.BiConsumer;
 
 /**
  * 
  * @author Nikita Koksharov
  *
  */
-public class CountableListener<T> implements FutureListener<Object> {
+public class CountableListener<T> implements BiConsumer<Object, Throwable> {
     
     protected final AtomicInteger counter = new AtomicInteger();
     protected final RPromise<T> result;
@@ -58,19 +56,19 @@ public class CountableListener<T> implements FutureListener<Object> {
         }
     }
     
+    protected void onSuccess(T value) {
+    }
+
     @Override
-    public void operationComplete(Future<Object> future) throws Exception {
-        if (!future.isSuccess()) {
+    public void accept(Object t, Throwable u) {
+        if (u != null) {
             if (result != null) {
-                result.tryFailure(future.cause());
+                result.tryFailure(u);
             }
             return;
         }
-
+        
         decCounter();
-    }
-
-    protected void onSuccess(T value) {
     }
 
 }

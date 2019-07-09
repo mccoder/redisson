@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@ package org.redisson.spring.data.connection;
 
 import java.util.concurrent.TimeUnit;
 
-import org.redisson.client.protocol.convertor.SingleConvertor;
+import org.redisson.client.protocol.convertor.Convertor;
 
 /**
  * 
  * @author Nikita Koksharov
  *
  */
-public class SecondsConvertor extends SingleConvertor<Long> {
+public class SecondsConvertor implements Convertor<Long> {
 
     private final TimeUnit unit;
     private final TimeUnit source;

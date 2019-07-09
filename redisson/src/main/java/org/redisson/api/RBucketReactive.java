@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,6 +76,16 @@ public interface RBucketReactive<V> extends RExpirableReactive {
      */
     Mono<V> getAndSet(V newValue);
 
+    /**
+     * Retrieves current element in the holder and replaces it with <code>newValue</code> with defined <code>timeToLive</code> interval. 
+     * 
+     * @param value - value to set
+     * @param timeToLive - time to live interval
+     * @param timeUnit - unit of time to live interval
+     * @return previous value
+     */
+    Mono<V> getAndSet(V value, long timeToLive, TimeUnit timeUnit);
+    
     /**
      * Retrieves element stored in the holder.
      * 

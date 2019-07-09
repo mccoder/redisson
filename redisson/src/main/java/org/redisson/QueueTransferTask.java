@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 
 import io.netty.util.Timeout;
 import io.netty.util.TimerTask;
-import io.netty.util.concurrent.FutureListener;
 
 /**
  * 
@@ -141,21 +140,18 @@ public abstract class QueueTransferTask {
     
     private void pushTask() {
         RFuture<Long> startTimeFuture = pushTaskAsync();
-        startTimeFuture.addListener(new FutureListener<Long>() {
-            @Override
-            public void operationComplete(io.netty.util.concurrent.Future<Long> future) throws Exception {
-                if (!future.isSuccess()) {
-                    if (future.cause() instanceof RedissonShutdownException) {
-                        return;
-                    }
-                    log.error(future.cause().getMessage(), future.cause());
-                    scheduleTask(System.currentTimeMillis() + 5 * 1000L);
+        startTimeFuture.onComplete((res, e) -> {
+            if (e != null) {
+                if (e instanceof RedissonShutdownException) {
                     return;
                 }
-                
-                if (future.getNow() != null) {
-                    scheduleTask(future.getNow());
-                }
+                log.error(e.getMessage(), e);
+                scheduleTask(System.currentTimeMillis() + 5 * 1000L);
+                return;
+            }
+            
+            if (res != null) {
+                scheduleTask(res);
             }
         });
     }

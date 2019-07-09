@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public class LRUCacheMap<K, V> extends AbstractCacheMap<K, V> {
 
     private final AtomicLong index = new AtomicLong();
     private final List<Collection<CachedValue<K, V>>> queues = 
-            new ArrayList<Collection<CachedValue<K, V>>>(Runtime.getRuntime().availableProcessors()*2);
+                        new ArrayList<Collection<CachedValue<K, V>>>();
     
     public LRUCacheMap(int size, long timeToLiveInMillis, long maxIdleInMillis) {
         super(size, timeToLiveInMillis, maxIdleInMillis);
@@ -54,7 +54,7 @@ public class LRUCacheMap<K, V> extends AbstractCacheMap<K, V> {
     }
 
     private Collection<CachedValue<K, V>> getQueue(CachedValue<K, V> value) {
-        return queues.get(value.hashCode() % queues.size());
+        return queues.get(Math.abs(value.hashCode() % queues.size()));
     }
     
     @Override
@@ -76,7 +76,7 @@ public class LRUCacheMap<K, V> extends AbstractCacheMap<K, V> {
     protected void onMapFull() {
         int startIndex = -1;
         while (true) {
-            int queueIndex = (int)Math.abs(index.incrementAndGet() % queues.size());
+            int queueIndex = (int) Math.abs(index.incrementAndGet() % queues.size());
             if (queueIndex == startIndex) {
                 return;
             }

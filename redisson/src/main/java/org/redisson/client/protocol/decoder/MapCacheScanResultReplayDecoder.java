@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ public class MapCacheScanResultReplayDecoder implements MultiDecoder<MapCacheSca
 
     @Override
     public MapCacheScanResult<Object, Object> decode(List<Object> parts, State state) {
-        Long pos = (Long)parts.get(0);
-        Map<Object, Object> values = (Map<Object, Object>)parts.get(1);
+        Long pos = (Long) parts.get(0);
+        Map<Object, Object> values = (Map<Object, Object>) parts.get(1);
         List<Object> idleKeys = (List<Object>) parts.get(2);
         return new MapCacheScanResult<Object, Object>(pos, values, idleKeys);
     }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -254,7 +254,7 @@ public interface RKeysReactive {
      * @param keys - object names
      * @return deleted objects amount
      */
-    Mono<Long> delete(String ... keys);
+    Mono<Long> delete(String... keys);
 
     /**
      * Delete multiple objects by name.
@@ -265,7 +265,7 @@ public interface RKeysReactive {
      * @param keys of objects
      * @return number of removed keys
      */
-    Mono<Long> unlink(String ... keys);
+    Mono<Long> unlink(String... keys);
     
     /**
      * Returns the number of keys in the currently-selected database

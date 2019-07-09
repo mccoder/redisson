@@ -238,7 +238,7 @@ public class RedissonMapCacheRxTest extends BaseRxTest {
         joinMap.put(6, "6");
         sync(map.putAll(joinMap));
 
-        assertThat(toIterable(map.keyIterator())).containsOnly(1, 2, 3, 4, 5, 6);
+        assertThat(toIterator(map.keyIterator())).containsOnly(1, 2, 3, 4, 5, 6);
     }
 
     @Test
@@ -407,22 +407,6 @@ public class RedissonMapCacheRxTest extends BaseRxTest {
         }
 
         Assert.assertEquals(0, values.size());
-    }
-
-    @Test
-    public void testEquals() {
-        RMapCacheRx<String, String> map = redisson.getMapCache("simple");
-        sync(map.put("1", "7"));
-        sync(map.put("2", "4"));
-        sync(map.put("3", "5"));
-
-        Map<String, String> testMap = new HashMap<String, String>();
-        testMap.put("1", "7");
-        testMap.put("2", "4");
-        testMap.put("3", "5");
-
-        Assert.assertEquals(map, testMap);
-        Assert.assertEquals(testMap.hashCode(), map.hashCode());
     }
 
 }

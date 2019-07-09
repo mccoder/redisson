@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,10 +59,10 @@ public interface RTopicAsync {
     /**
      * Removes the listener by <code>id</code> for listening this topic
      *
-     * @param listenerId - listener id
+     * @param listenerIds - listener ids
      * @return void
      */
-    RFuture<Void> removeListenerAsync(int listenerId);
+    RFuture<Void> removeListenerAsync(Integer... listenerIds);
 
     /**
      * Removes the listener by its instance
@@ -71,5 +71,13 @@ public interface RTopicAsync {
      * @return void
      */
     RFuture<Void> removeListenerAsync(MessageListener<?> listener);
+    
+    /**
+     * Returns amount of subscribers to this topic across all Redisson instances.
+     * Each subscriber may have multiple listeners.
+     * 
+     * @return amount of subscribers
+     */
+    RFuture<Long> countSubscribersAsync();
     
 }

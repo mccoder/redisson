@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public class RedissonMultiLockDefinitionParser
             String localName = elt.getLocalName();
             if (BeanDefinitionParserDelegate
                     .QUALIFIER_ELEMENT.equals(localName)) {
-                continue;//parsed elsewhere
+                continue; //parsed elsewhere
             }
             String id;
             if (BeanDefinitionParserDelegate.REF_ELEMENT.equals(localName)){

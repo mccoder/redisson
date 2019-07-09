@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public interface RBlockingDeque<V> extends BlockingDeque<V>, RBlockingQueue<V>, 
      *         specified waiting time elapses before an element is available
      * @throws InterruptedException if interrupted while waiting
      */
-    V pollFirstFromAny(long timeout, TimeUnit unit, String ... queueNames) throws InterruptedException;
+    V pollFirstFromAny(long timeout, TimeUnit unit, String... queueNames) throws InterruptedException;
 
     /**
      * Retrieves and removes first available tail element of <b>any</b> queue,
@@ -56,6 +56,6 @@ public interface RBlockingDeque<V> extends BlockingDeque<V>, RBlockingQueue<V>, 
      *         specified waiting time elapses before an element is available
      * @throws InterruptedException if interrupted while waiting
      */
-    V pollLastFromAny(long timeout, TimeUnit unit, String ... queueNames) throws InterruptedException;
+    V pollLastFromAny(long timeout, TimeUnit unit, String... queueNames) throws InterruptedException;
 
 }

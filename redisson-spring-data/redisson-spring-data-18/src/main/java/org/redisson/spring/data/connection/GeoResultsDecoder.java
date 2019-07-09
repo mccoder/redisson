@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class GeoResultsDecoder implements MultiDecoder<GeoResults<GeoLocation<by
                     result.add(new GeoResult<GeoLocation<byte[]>>(location, new Distance((Double)vals.get(1), metric)));
                 } else {
                     GeoLocation<byte[]> location = new GeoLocation<byte[]>((byte[])vals.get(0), (Point)vals.get(1));
-                    result.add(new GeoResult<GeoLocation<byte[]>>(location, null));
+                    result.add(new GeoResult<GeoLocation<byte[]>>(location, new Distance(0)));
                 }
             } else {
                 GeoLocation<byte[]> location = new GeoLocation<byte[]>((byte[])object, null);

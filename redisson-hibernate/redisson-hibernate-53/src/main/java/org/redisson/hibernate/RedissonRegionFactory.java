@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,20 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
 
+import org.hibernate.boot.registry.selector.spi.StrategySelector;
 import org.hibernate.boot.spi.SessionFactoryOptions;
 import org.hibernate.cache.CacheException;
 import org.hibernate.cache.cfg.spi.DomainDataRegionBuildingContext;
 import org.hibernate.cache.cfg.spi.DomainDataRegionConfig;
+import org.hibernate.cache.internal.DefaultCacheKeysFactory;
+import org.hibernate.cache.spi.CacheKeysFactory;
 import org.hibernate.cache.spi.DomainDataRegion;
 import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cache.spi.support.DomainDataRegionImpl;
 import org.hibernate.cache.spi.support.DomainDataStorageAccess;
 import org.hibernate.cache.spi.support.RegionFactoryTemplate;
 import org.hibernate.cache.spi.support.StorageAccess;
+import org.hibernate.cfg.Environment;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.internal.util.config.ConfigurationHelper;
 import org.redisson.Redisson;
@@ -41,6 +45,8 @@ import org.redisson.client.codec.LongCodec;
 import org.redisson.config.Config;
 
 /**
+ * Hibernate Cache region factory based on Redisson. 
+ * Creates own Redisson instance during region start.
  * 
  * @author Nikita Koksharov
  *
@@ -70,10 +76,16 @@ public class RedissonRegionFactory extends RegionFactoryTemplate {
     public static final String REDISSON_CONFIG_PATH = CONFIG_PREFIX + "config";
     
     private RedissonClient redisson;
+    private CacheKeysFactory cacheKeysFactory;
     
     @Override
     protected void prepareForUse(SessionFactoryOptions settings, @SuppressWarnings("rawtypes") Map properties) throws CacheException {
         this.redisson = createRedissonClient(properties);
+        
+        StrategySelector selector = settings.getServiceRegistry().getService(StrategySelector.class);
+        cacheKeysFactory = selector.resolveDefaultableStrategy(CacheKeysFactory.class, 
+                properties.get(Environment.CACHE_KEYS_FACTORY), DefaultCacheKeysFactory.INSTANCE);
+
     }
 
     protected RedissonClient createRedissonClient(Map properties) {
@@ -112,34 +124,20 @@ public class RedissonRegionFactory extends RegionFactoryTemplate {
     }
     
     private Config loadConfig(ClassLoader classLoader, String fileName) {
-        Config config = null;
-        try {
-            InputStream is = classLoader.getResourceAsStream(fileName);
-            if (is != null) {
-                try {
-                    config = Config.fromJSON(is);
-                } finally {
-                    is.close();
-                }
-            }
-        } catch (IOException e) {
-            throw new CacheException("Can't parse json config", e);
-        }
-        if (config == null) {
+        InputStream is = classLoader.getResourceAsStream(fileName);
+        if (is != null) {
             try {
-                InputStream is = classLoader.getResourceAsStream(fileName);
-                if (is != null) {
-                    try {
-                        config = Config.fromYAML(is);
-                    } finally {
-                        is.close();
-                    }
-                }
+                return Config.fromJSON(is);
             } catch (IOException e) {
-                throw new CacheException("Can't parse yaml config", e);
+                try {
+                    is = classLoader.getResourceAsStream(fileName);
+                    return Config.fromYAML(is);
+                } catch (IOException e1) {
+                    throw new CacheException("Can't parse yaml config", e1);
+                }
             }
         }
-        return config;
+        return null;
     }
 
     @Override
@@ -181,7 +179,7 @@ public class RedissonRegionFactory extends RegionFactoryTemplate {
                 regionConfig,
                 this,
                 createDomainDataStorageAccess( regionConfig, buildingContext ),
-                getImplicitCacheKeysFactory(),
+                cacheKeysFactory,
                 buildingContext
         );
     }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,12 @@ import org.redisson.api.annotation.RId;
  *
  * @author Rui Gu (https://github.com/jackygurui)
  */
-public class LongGenerator implements RIdResolver<RId, Long> {
+public class LongGenerator implements RIdResolver<Long> {
 
-    public static final LongGenerator INSTANCE
-            = new LongGenerator();
+    public static final LongGenerator INSTANCE = new LongGenerator();
 
     @Override
-    public Long resolve(Class value, RId id, String idFieldName, RedissonClient redisson) {
+    public Long resolve(Class<?> value, RId id, String idFieldName, RedissonClient redisson) {
         return redisson.getAtomicLong(this.getClass().getCanonicalName()
                 + "{" + value.getCanonicalName() + "}:" + idFieldName)
                 .incrementAndGet();

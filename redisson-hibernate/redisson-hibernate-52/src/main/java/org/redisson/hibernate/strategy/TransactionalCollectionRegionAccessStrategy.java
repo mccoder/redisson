@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.redisson.hibernate.strategy;
 
 import org.hibernate.cache.CacheException;
-import org.hibernate.cache.internal.DefaultCacheKeysFactory;
 import org.hibernate.cache.spi.CollectionRegion;
 import org.hibernate.cache.spi.GeneralDataRegion;
 import org.hibernate.cache.spi.access.CollectionRegionAccessStrategy;
@@ -25,6 +24,7 @@ import org.hibernate.cfg.Settings;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.persister.collection.CollectionPersister;
+import org.redisson.hibernate.region.RedissonCollectionRegion;
 
 /**
  * 
@@ -74,12 +74,12 @@ public class TransactionalCollectionRegionAccessStrategy extends BaseRegionAcces
 
     @Override
     public Object generateCacheKey(Object id, CollectionPersister persister, SessionFactoryImplementor factory, String tenantIdentifier) {
-        return DefaultCacheKeysFactory.staticCreateCollectionKey( id, persister, factory, tenantIdentifier );
+        return ((RedissonCollectionRegion)region).getCacheKeysFactory().createCollectionKey( id, persister, factory, tenantIdentifier );
     }
 
     @Override
     public Object getCacheKeyId(Object cacheKey) {
-        return DefaultCacheKeysFactory.staticGetCollectionId(cacheKey);
+        return ((RedissonCollectionRegion)region).getCacheKeysFactory().getCollectionId(cacheKey);
     }
 
 }

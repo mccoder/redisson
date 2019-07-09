@@ -3,6 +3,7 @@ package org.redisson.executor;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.joor.Reflect;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -31,7 +33,6 @@ import org.redisson.api.annotation.RInject;
 import org.redisson.config.Config;
 import org.redisson.config.RedissonNodeConfig;
 
-import mockit.Deencapsulation;
 import mockit.Invocation;
 import mockit.Mock;
 import mockit.MockUp;
@@ -58,7 +59,7 @@ public class RedissonScheduledExecutorServiceTest extends BaseTest {
         node.shutdown();
     }
     
-    public static class TestTask implements Runnable {
+    public static class TestTask implements Runnable, Serializable {
         
         @RInject
         RedissonClient redisson;
@@ -87,7 +88,7 @@ public class RedissonScheduledExecutorServiceTest extends BaseTest {
         RScheduledExecutorService executorService = client.getExecutorService("JobA");
         executorService.schedule(new TestTask() , CronSchedule.of("0/1 * * * * ?"));
         
-        TimeUnit.MILLISECONDS.sleep(4800);
+        TimeUnit.MILLISECONDS.sleep(4900);
         
         assertThat(client.getAtomicLong("counter").get()).isEqualTo(4);
         
@@ -104,7 +105,8 @@ public class RedissonScheduledExecutorServiceTest extends BaseTest {
         assertThat(f.isSuccess()).isTrue();
         assertThat(System.currentTimeMillis() - start).isBetween(11000L, 11500L);
         
-        Deencapsulation.setField(RedissonExecutorService.class, "RESULT_OPTIONS", RemoteInvocationOptions.defaults().noAck().expectResultWithin(3, TimeUnit.SECONDS));
+        Reflect.onClass(RedissonExecutorService.class).set("RESULT_OPTIONS", RemoteInvocationOptions.defaults().noAck().expectResultWithin(3, TimeUnit.SECONDS));
+    
         executor = redisson.getExecutorService("test", ExecutorOptions.defaults().taskRetryInterval(5, TimeUnit.SECONDS));
         start = System.currentTimeMillis();
         RScheduledFuture<?> f1 = executor.schedule(new ScheduledCallableTask(), 5, TimeUnit.SECONDS);
@@ -154,7 +156,7 @@ public class RedissonScheduledExecutorServiceTest extends BaseTest {
         long start = System.currentTimeMillis();
         RExecutorFuture<?> f = executor.schedule(new IncrementRunnableTask("counter"), 1, TimeUnit.SECONDS);
         f.syncUninterruptibly();
-        assertThat(System.currentTimeMillis() - start).isBetween(900L, 1200L);
+        assertThat(System.currentTimeMillis() - start).isBetween(900L, 1300L);
         assertThat(redisson.getAtomicLong("counter").get()).isEqualTo(1);
         Thread.sleep(2000);
         node.shutdown();
@@ -342,6 +344,42 @@ public class RedissonScheduledExecutorServiceTest extends BaseTest {
         } catch (CancellationException e) {
             // skip
         }
+    }
+    
+    public static class ScheduledRunnableTask2 implements Runnable, Serializable {
+        private static final long serialVersionUID = -3523561767248576192L;
+        private String key;
+
+        @RInject
+        private RedissonClient redisson;
+
+        public ScheduledRunnableTask2(String key) {
+            this.key = key;
+        }
+
+        @Override
+        public void run() {
+            System.out.println("job is running");
+            try {
+                redisson.getAtomicLong(key).incrementAndGet();
+                Thread.sleep(15000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("job is over");
+        }
+    }
+
+    @Test
+    public void testCancelAtFixedDelay2() throws InterruptedException, ExecutionException {
+        RScheduledExecutorService executor = redisson.getExecutorService("test", ExecutorOptions.defaults().taskRetryInterval(30, TimeUnit.MINUTES));
+        executor.registerWorkers(5);
+        RScheduledFuture<?> future1 = executor.scheduleWithFixedDelay(new ScheduledRunnableTask2("executed1"), 1, 2, TimeUnit.SECONDS);
+        Thread.sleep(5000);
+        assertThat(redisson.getAtomicLong("executed1").get()).isEqualTo(1);
+        assertThat(executor.cancelTask(future1.getTaskId())).isTrue();
+        Thread.sleep(30000);
+        assertThat(redisson.getAtomicLong("executed1").get()).isEqualTo(1);
     }
 
 

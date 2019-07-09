@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,7 +128,7 @@ public interface RScriptReactive {
      * @param shaDigests - collection of SHA-1 digests
      * @return list of booleans corresponding to collection SHA-1 digests
      */
-    Mono<List<Boolean>> scriptExists(String ... shaDigests);
+    Mono<List<Boolean>> scriptExists(String... shaDigests);
 
     /**
      * Kills currently executed Lua script

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ class RedissonSubSortedSet<V> implements SortedSet<V> {
     private V headValue;
     private V tailValue;
 
-    public RedissonSubSortedSet(RedissonSortedSet<V> redissonSortedSet, ConnectionManager connectionManager, V headValue, V tailValue) {
+    RedissonSubSortedSet(RedissonSortedSet<V> redissonSortedSet, ConnectionManager connectionManager, V headValue, V tailValue) {
         super();
         this.headValue = headValue;
         this.tailValue = tailValue;
@@ -317,6 +317,8 @@ class RedissonSubSortedSet<V> implements SortedSet<V> {
 //        }
     }
 
+    @SuppressWarnings("AvoidInlineConditionals")
+    @Override
     public String toString() {
         Iterator<V> it = iterator();
         if (! it.hasNext())

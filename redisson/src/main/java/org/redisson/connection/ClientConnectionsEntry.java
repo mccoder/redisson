@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,6 @@ import org.redisson.config.ReadMode;
 import org.redisson.pubsub.AsyncSemaphore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.FutureListener;
 
 /**
  * 
@@ -158,19 +155,15 @@ public class ClientConnectionsEntry {
 
     public RFuture<RedisConnection> connect() {
         RFuture<RedisConnection> future = client.connectAsync();
-        future.addListener(new FutureListener<RedisConnection>() {
-            @Override
-            public void operationComplete(Future<RedisConnection> future) throws Exception {
-                if (!future.isSuccess()) {
-                    return;
-                }
-                
-                RedisConnection conn = future.getNow();
-                onConnect(conn);
-                log.debug("new connection created: {}", conn);
-                
-                allConnections.add(conn);
+        future.onComplete((conn, e) -> {
+            if (e != null) {
+                return;
             }
+            
+            onConnect(conn);
+            log.debug("new connection created: {}", conn);
+            
+            allConnections.add(conn);
         });
         return future;
     }
@@ -202,19 +195,16 @@ public class ClientConnectionsEntry {
 
     public RFuture<RedisPubSubConnection> connectPubSub() {
         RFuture<RedisPubSubConnection> future = client.connectPubSubAsync();
-        future.addListener(new FutureListener<RedisPubSubConnection>() {
-            @Override
-            public void operationComplete(Future<RedisPubSubConnection> future) throws Exception {
-                if (!future.isSuccess()) {
-                    return;
-                }
-                
-                RedisPubSubConnection conn = future.getNow();
-                onConnect(conn);
-                log.debug("new pubsub connection created: {}", conn);
-
-                allSubscribeConnections.add(conn);
+        future.onComplete((res, e) -> {
+            if (e != null) {
+                return;
             }
+            
+            RedisPubSubConnection conn = future.getNow();
+            onConnect(conn);
+            log.debug("new pubsub connection created: {}", conn);
+
+            allSubscribeConnections.add(conn);
         });
         return future;
     }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,7 +112,14 @@ public class ListMultiDecoder<T> implements MultiDecoder<Object> {
         return ds;
     }
     
-    public ListMultiDecoder(MultiDecoder<?> ... decoders) {
+    public ListMultiDecoder(MultiDecoder<?>... decoders) {
+        this.decoders = decoders;
+    }
+    
+    private Integer fixedIndex;
+    
+    public ListMultiDecoder(Integer fixedIndex, MultiDecoder<?>... decoders) {
+        this.fixedIndex = fixedIndex;
         this.decoders = decoders;
     }
 
@@ -120,7 +127,11 @@ public class ListMultiDecoder<T> implements MultiDecoder<Object> {
     public Decoder<Object> getDecoder(int paramNum, State state) {
         if (paramNum == 0) {
             NestedDecoderState s = getDecoder(state);
-            s.incIndex();
+            if (fixedIndex != null) {
+                s.setIndex(fixedIndex);
+            } else {
+                s.incIndex();
+            }
             s.resetPartsIndex();
         }
 
@@ -152,7 +163,11 @@ public class ListMultiDecoder<T> implements MultiDecoder<Object> {
         int index = s.getIndex();
         index += s.incPartsIndex();
         
-        if (index == -1) {
+        if (fixedIndex != null && parts.isEmpty()) {
+            s.resetPartsIndex();
+        }
+        
+        if (index == -1 || (fixedIndex != null && state.getLevel() == 0)) {
             return decoders[decoders.length-1].decode(parts, state);
         }
         

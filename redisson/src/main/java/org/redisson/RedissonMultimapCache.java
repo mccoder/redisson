@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,12 +60,12 @@ public class RedissonMultimapCache<K> {
                 + "return 0; "
               + "end",
             Arrays.<Object>asList(object.getName(), timeoutSetName), 
-            ttlTimeout, ((RedissonObject)object).encodeMapKey(key));
+            ttlTimeout, ((RedissonObject) object).encodeMapKey(key));
     }
     
     public RFuture<Long> sizeInMemoryAsync() {
         List<Object> keys = Arrays.<Object>asList(object.getName(), timeoutSetName);
-        return ((RedissonObject)object).sizeInMemoryAsync(keys);
+        return ((RedissonObject) object).sizeInMemoryAsync(keys);
     }
     
     public RFuture<Boolean> deleteAsync() {

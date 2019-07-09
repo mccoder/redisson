@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public interface RBlockingDequeAsync<V> extends RDequeAsync<V>, RBlockingQueueAs
      * @return the head of this queue, or {@code null} if the
      *         specified waiting time elapses before an element is available
      */
-    RFuture<V> pollFirstFromAnyAsync(long timeout, TimeUnit unit, String ... queueNames);
+    RFuture<V> pollFirstFromAnyAsync(long timeout, TimeUnit unit, String... queueNames);
 
     /**
      * Retrieves and removes first available tail element of <b>any</b> queue in async mode,
@@ -54,7 +54,7 @@ public interface RBlockingDequeAsync<V> extends RDequeAsync<V>, RBlockingQueueAs
      * @return the head of this queue, or {@code null} if the
      *         specified waiting time elapses before an element is available
      */
-    RFuture<V> pollLastFromAnyAsync(long timeout, TimeUnit unit, String ... queueNames);
+    RFuture<V> pollLastFromAnyAsync(long timeout, TimeUnit unit, String... queueNames);
 
     /**
      * Adds value to the head of queue.

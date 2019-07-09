@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,19 +30,21 @@ import org.redisson.client.codec.Codec;
  */
 public class RedissonListMultimapRx<K, V> {
 
-    private CommandRxExecutor commandExecutor;
-    private RedissonListMultimap<K, V> instance;
+    private final CommandRxExecutor commandExecutor;
+    private final RedissonListMultimap<K, V> instance;
     
     public RedissonListMultimapRx(CommandRxExecutor commandExecutor, String name) {
         this.instance = new RedissonListMultimap<K, V>(commandExecutor, name);
+        this.commandExecutor = commandExecutor;
     }
 
     public RedissonListMultimapRx(Codec codec, CommandRxExecutor commandExecutor, String name) {
         this.instance = new RedissonListMultimap<K, V>(codec, commandExecutor, name);
+        this.commandExecutor = commandExecutor;
     }
 
     public RListRx<V> get(K key) {
-        RedissonList<V> list = (RedissonList<V>) ((RListMultimap<K, V>)instance).get(key);
+        RedissonList<V> list = (RedissonList<V>) ((RListMultimap<K, V>) instance).get(key);
         return RxProxyBuilder.create(commandExecutor, instance, 
                 new RedissonListRx<V>(list), RListRx.class);
     }

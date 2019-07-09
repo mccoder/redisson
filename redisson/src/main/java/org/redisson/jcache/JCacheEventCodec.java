@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.redisson.jcache;
 
 import java.io.IOException;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,7 +62,7 @@ public class JCacheEventCodec implements Codec {
             result.add(value);
             
             if (sync) {
-                double syncId = buf.order(ByteOrder.LITTLE_ENDIAN).readDouble();
+                double syncId = buf.readDoubleLE();
                 result.add(syncId);
             }
             

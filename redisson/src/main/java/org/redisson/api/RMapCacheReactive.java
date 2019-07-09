@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import reactor.core.publisher.Mono;
  * @param <K> key
  * @param <V> value
  */
-public interface RMapCacheReactive<K, V> extends RMapReactive<K, V> {
+public interface RMapCacheReactive<K, V> extends RMapReactive<K, V>, RDestroyable {
 
     /**
      * Sets max size of the map.

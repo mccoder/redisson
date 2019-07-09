@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 import org.redisson.api.RFuture;
 
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.FutureListener;
 import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Mono;
 
@@ -55,21 +53,18 @@ public abstract class PublisherAdder<V> {
             @Override
             protected void hookOnNext(V o) {
                 values.getAndIncrement();
-                add(o).addListener(new FutureListener<Boolean>() {
-                    @Override
-                    public void operationComplete(Future<Boolean> future) throws Exception {
-                        if (!future.isSuccess()) {
-                            promise.completeExceptionally(future.cause());
-                            return;
-                        }
-                        
-                        if (future.getNow()) {
-                            lastSize = true;
-                        }
-                        s.request(1);
-                        if (values.decrementAndGet() == 0 && completed) {
-                            promise.complete(lastSize);
-                        }
+                add(o).onComplete((res, e) -> {
+                    if (e != null) {
+                        promise.completeExceptionally(e);
+                        return;
+                    }
+                    
+                    if (res) {
+                        lastSize = true;
+                    }
+                    s.request(1);
+                    if (values.decrementAndGet() == 0 && completed) {
+                        promise.complete(lastSize);
                     }
                 });
             }

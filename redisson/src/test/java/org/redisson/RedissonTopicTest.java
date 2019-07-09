@@ -18,6 +18,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.awaitility.Duration;
 import org.junit.After;
@@ -27,6 +28,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.redisson.ClusterRunner.ClusterProcesses;
+import org.redisson.RedisRunner.KEYSPACE_EVENTS_OPTIONS;
 import org.redisson.RedisRunner.RedisProcess;
 import org.redisson.api.RFuture;
 import org.redisson.api.RPatternTopic;
@@ -36,9 +38,14 @@ import org.redisson.api.RedissonClient;
 import org.redisson.api.listener.BaseStatusListener;
 import org.redisson.api.listener.MessageListener;
 import org.redisson.api.listener.PatternMessageListener;
+import org.redisson.api.listener.PatternStatusListener;
 import org.redisson.api.listener.StatusListener;
+import org.redisson.client.RedisClient;
+import org.redisson.client.RedisClientConfig;
+import org.redisson.client.RedisTimeoutException;
 import org.redisson.client.codec.LongCodec;
 import org.redisson.client.codec.StringCodec;
+import org.redisson.client.protocol.RedisStrictCommand;
 import org.redisson.config.Config;
 import org.redisson.config.SubscriptionMode;
 import org.redisson.connection.balancer.RandomLoadBalancer;
@@ -108,6 +115,20 @@ public class RedissonTopicTest {
     }
     
     @Test
+    public void testCountSubscribers() {
+        RedissonClient redisson = BaseTest.createInstance();
+        RTopic topic1 = redisson.getTopic("topic", LongCodec.INSTANCE);
+        assertThat(topic1.countSubscribers()).isZero();
+        int id = topic1.addListener(Long.class, (channel, msg) -> {
+        });
+        assertThat(topic1.countSubscribers()).isOne();
+        topic1.removeListener(id);
+        assertThat(topic1.countSubscribers()).isZero();
+
+        redisson.shutdown();
+    }
+    
+    @Test
     public void testCountListeners() {
         RedissonClient redisson = BaseTest.createInstance();
         RTopic topic1 = redisson.getTopic("topic", LongCodec.INSTANCE);
@@ -137,7 +158,9 @@ public class RedissonTopicTest {
         CountDownLatch latch = new CountDownLatch(count);
         
         RTopic eventsTopic = redisson.getTopic("eventsTopic");
+        AtomicInteger co = new AtomicInteger();
         eventsTopic.addListener(String.class, (channel, msg) -> {
+            co.incrementAndGet();
             latch.countDown();
         });
 
@@ -147,7 +170,7 @@ public class RedissonTopicTest {
             Thread.sleep(10);
         }
         
-        assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
+        assertThat(latch.await(40, TimeUnit.SECONDS)).isTrue();
         
         redisson.shutdown();
     }
@@ -187,7 +210,7 @@ public class RedissonTopicTest {
             futures.add(s);
         }
         executor.shutdown();
-        Assert.assertTrue(executor.awaitTermination(threads * loops * 1000, TimeUnit.SECONDS));
+        Assert.assertTrue(executor.awaitTermination(100, TimeUnit.SECONDS));
 
         for (Future<?> future : futures) {
             future.get();
@@ -547,18 +570,17 @@ public class RedissonTopicTest {
         redisson2.shutdown();
     }
 
-    volatile long counter;
-
     @Test
     public void testHeavyLoad() throws InterruptedException {
         final CountDownLatch messageRecieved = new CountDownLatch(1000);
 
+        AtomicLong counter = new AtomicLong();
         RedissonClient redisson1 = BaseTest.createInstance();
         RTopic topic1 = redisson1.getTopic("topic");
         topic1.addListener(Message.class, (channel, msg) -> {
             Assert.assertEquals(new Message("123"), msg);
             messageRecieved.countDown();
-            counter++;
+            counter.incrementAndGet();
         });
 
         RedissonClient redisson2 = BaseTest.createInstance();
@@ -568,7 +590,8 @@ public class RedissonTopicTest {
             messageRecieved.countDown();
         });
 
-        for (int i = 0; i < 5000; i++) {
+        int count = 10000;
+        for (int i = 0; i < count; i++) {
             topic2.publish(new Message("123"));
         }
 
@@ -576,7 +599,7 @@ public class RedissonTopicTest {
 
         Thread.sleep(1000);
 
-        Assert.assertEquals(5000, counter);
+        Assert.assertEquals(count, counter.get());
 
         redisson1.shutdown();
         redisson2.shutdown();
@@ -664,7 +687,7 @@ public class RedissonTopicTest {
 //    @Test
     public void testReattachInClusterLong() throws Exception {
         for (int i = 0; i < 25; i++) {
-            testReattachInCluster();
+            testReattachInClusterSlave();
         }
     }
     
@@ -738,7 +761,7 @@ public class RedissonTopicTest {
             }
         });
         
-        sendCommands(redisson);
+        sendCommands(redisson, "topic");
         
         sentinel1.stop();
         sentinel2.stop();
@@ -802,15 +825,173 @@ public class RedissonTopicTest {
         slave2.stop();
     }
 
-    protected void sendCommands(RedissonClient redisson) {
+    @Test
+    public void testReattachInSentinel2() throws Exception {
+        RedisRunner.RedisProcess master = new RedisRunner()
+                .nosave()
+                .randomDir()
+                .run();
+        RedisRunner.RedisProcess slave1 = new RedisRunner()
+                .port(6380)
+                .nosave()
+                .randomDir()
+                .slaveof("127.0.0.1", 6379)
+                .run();
+        RedisRunner.RedisProcess slave2 = new RedisRunner()
+                .port(6381)
+                .nosave()
+                .randomDir()
+                .slaveof("127.0.0.1", 6379)
+                .run();
+        RedisRunner.RedisProcess sentinel1 = new RedisRunner()
+                .nosave()
+                .randomDir()
+                .port(26379)
+                .sentinel()
+                .sentinelMonitor("myMaster", "127.0.0.1", 6379, 2)
+                .run();
+        RedisRunner.RedisProcess sentinel2 = new RedisRunner()
+                .nosave()
+                .randomDir()
+                .port(26380)
+                .sentinel()
+                .sentinelMonitor("myMaster", "127.0.0.1", 6379, 2)
+                .run();
+        RedisRunner.RedisProcess sentinel3 = new RedisRunner()
+                .nosave()
+                .randomDir()
+                .port(26381)
+                .sentinel()
+                .sentinelMonitor("myMaster", "127.0.0.1", 6379, 2)
+                .run();
+        
+        Thread.sleep(5000); 
+        
+        Config config = new Config();
+        config.useSentinelServers()
+            .setLoadBalancer(new RandomLoadBalancer())
+            .addSentinelAddress(sentinel3.getRedisServerAddressAndPort()).setMasterName("myMaster");
+        RedissonClient redisson = Redisson.create(config);
+        
+        final AtomicBoolean executed = new AtomicBoolean();
+        final AtomicInteger subscriptions = new AtomicInteger();
+        
+        RTopic topic = redisson.getTopic("topic");
+        topic.addListener(new StatusListener() {
+            
+            @Override
+            public void onUnsubscribe(String channel) {
+            }
+            
+            @Override
+            public void onSubscribe(String channel) {
+                subscriptions.incrementAndGet();
+            }
+        });
+        topic.addListener(Integer.class, new MessageListener<Integer>() {
+            @Override
+            public void onMessage(CharSequence channel, Integer msg) {
+                executed.set(true);
+            }
+        });
+        
+        sendCommands(redisson, "topic");
+        
+        sentinel1.stop();
+        sentinel2.stop();
+        sentinel3.stop();
+        master.stop();
+        slave1.stop();
+        slave2.stop();
+        
+        Thread.sleep(TimeUnit.SECONDS.toMillis(20));
+        
+        topic.removeAllListeners();
+        long t = System.currentTimeMillis();
+        topic.addListenerAsync(new StatusListener() {
+            
+            @Override
+            public void onUnsubscribe(String channel) {
+            }
+            
+            @Override
+            public void onSubscribe(String channel) {
+                System.out.println("onSubscribe " + (System.currentTimeMillis() - t));
+                subscriptions.incrementAndGet();
+            }
+        });
+        topic.addListenerAsync(Integer.class, new MessageListener<Integer>() {
+            @Override
+            public void onMessage(CharSequence channel, Integer msg) {
+                executed.set(true);
+            }
+        });
+        
+        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+        
+        master = new RedisRunner()
+                .port(6390)
+                .nosave()
+                .randomDir()
+                .run();
+        slave1 = new RedisRunner()
+                .port(6391)
+                .nosave()
+                .randomDir()
+                .slaveof("127.0.0.1", 6390)
+                .run();
+        slave2 = new RedisRunner()
+                .port(6392)
+                .nosave()
+                .randomDir()
+                .slaveof("127.0.0.1", 6390)
+                .run();
+        sentinel1 = new RedisRunner()
+                .nosave()
+                .randomDir()
+                .port(26379)
+                .sentinel()
+                .sentinelMonitor("myMaster", "127.0.0.1", 6390, 2)
+                .run();
+        sentinel2 = new RedisRunner()
+                .nosave()
+                .randomDir()
+                .port(26380)
+                .sentinel()
+                .sentinelMonitor("myMaster", "127.0.0.1", 6390, 2)
+                .run();
+        sentinel3 = new RedisRunner()
+                .nosave()
+                .randomDir()
+                .port(26381)
+                .sentinel()
+                .sentinelMonitor("myMaster", "127.0.0.1", 6390, 2)
+                .run();
+        
+        redisson.getTopic("topic").publish(1);
+        
+        await().atMost(20, TimeUnit.SECONDS).until(() -> subscriptions.get() == 2);
+        Assert.assertTrue(executed.get());
+        
+        redisson.shutdown();
+        sentinel1.stop();
+        sentinel2.stop();
+        sentinel3.stop();
+        master.stop();
+        slave1.stop();
+        slave2.stop();
+    }
+    
+    protected Thread sendCommands(RedissonClient redisson, String topicName) {
         Thread t = new Thread() {
+            @Override
             public void run() {
                 List<RFuture<?>> futures = new ArrayList<RFuture<?>>();
                 
                 for (int i = 0; i < 100; i++) {
                     RFuture<?> f1 = redisson.getBucket("i" + i).getAsync();
                     RFuture<?> f2 = redisson.getBucket("i" + i).setAsync("");
-                    RFuture<?> f3 = redisson.getTopic("topic").publishAsync(1);
+                    RFuture<?> f3 = redisson.getTopic(topicName).publishAsync(1);
                     futures.add(f1);
                     futures.add(f2);
                     futures.add(f3);
@@ -822,10 +1003,11 @@ public class RedissonTopicTest {
             };
         };
         t.start();
+        return t;
     }
     
     @Test
-    public void testReattachInCluster() throws Exception {
+    public void testReattachInClusterSlave() throws Exception {
         RedisRunner master1 = new RedisRunner().randomPort().randomDir().nosave();
         RedisRunner master2 = new RedisRunner().randomPort().randomDir().nosave();
         RedisRunner master3 = new RedisRunner().randomPort().randomDir().nosave();
@@ -869,7 +1051,7 @@ public class RedissonTopicTest {
             }
         });
         
-        sendCommands(redisson);
+        sendCommands(redisson, "topic");
         
         process.getNodes().stream().filter(x -> Arrays.asList(slave1.getPort(), slave2.getPort(), slave3.getPort()).contains(x.getRedisServerPort()))
                         .forEach(x -> {
@@ -892,6 +1074,148 @@ public class RedissonTopicTest {
         redisson.shutdown();
         process.shutdown();
     }
+    
+    @Test
+    public void testReattachInClusterMaster() throws Exception {
+        RedisRunner master1 = new RedisRunner().randomPort().randomDir().nosave();
+        RedisRunner master2 = new RedisRunner().randomPort().randomDir().nosave();
+        RedisRunner master3 = new RedisRunner().randomPort().randomDir().nosave();
+        RedisRunner slave1 = new RedisRunner().randomPort().randomDir().nosave();
+        RedisRunner slave2 = new RedisRunner().randomPort().randomDir().nosave();
+        RedisRunner slave3 = new RedisRunner().randomPort().randomDir().nosave();
 
+        
+        ClusterRunner clusterRunner = new ClusterRunner()
+                .addNode(master1, slave1)
+                .addNode(master2, slave2)
+                .addNode(master3, slave3);
+        ClusterProcesses process = clusterRunner.run();
+        
+        Config config = new Config();
+        config.useClusterServers()
+        .setSubscriptionMode(SubscriptionMode.MASTER)
+        .setLoadBalancer(new RandomLoadBalancer())
+        .addNodeAddress(process.getNodes().stream().findAny().get().getRedisServerAddressAndPort());
+        RedissonClient redisson = Redisson.create(config);
+        
+        final AtomicBoolean executed = new AtomicBoolean();
+        final AtomicInteger subscriptions = new AtomicInteger();
+        
+        RTopic topic = redisson.getTopic("3");
+        topic.addListener(new StatusListener() {
+            
+            @Override
+            public void onUnsubscribe(String channel) {
+            }
+            
+            @Override
+            public void onSubscribe(String channel) {
+                subscriptions.incrementAndGet();
+            }
+        });
+        topic.addListener(Integer.class, new MessageListener<Integer>() {
+            @Override
+            public void onMessage(CharSequence channel, Integer msg) {
+                executed.set(true);
+            }
+        });
+        
+        sendCommands(redisson, "3");
+        
+        process.getNodes().stream().filter(x -> master1.getPort() == x.getRedisServerPort())
+                        .forEach(x -> {
+                            try {
+                                x.stop();
+                                Thread.sleep(18000);
+                            } catch (InterruptedException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
+                        }); 
 
+        Thread.sleep(15000);
+
+        redisson.getTopic("3").publish(1);
+        
+        await().atMost(75, TimeUnit.SECONDS).until(() -> subscriptions.get() == 2);
+        Assert.assertTrue(executed.get());
+        
+        redisson.shutdown();
+        process.shutdown();
+    }
+
+    @Test
+    public void testReattachPatternTopicListenersOnClusterFailover() throws Exception {
+        final KEYSPACE_EVENTS_OPTIONS keyspaceEvents[] =
+                {KEYSPACE_EVENTS_OPTIONS.K, KEYSPACE_EVENTS_OPTIONS.E, KEYSPACE_EVENTS_OPTIONS.A};
+        final RedisRunner master = new RedisRunner().randomPort().randomDir().nosave()
+                .notifyKeyspaceEvents(keyspaceEvents);
+        final RedisRunner slave = new RedisRunner().randomPort().randomDir().nosave()
+                .notifyKeyspaceEvents(keyspaceEvents);
+
+        final ClusterRunner clusterRunner = new ClusterRunner().addNode(master, slave);
+        final ClusterProcesses process = clusterRunner.run();
+
+        final Config config = new Config();
+        config.useClusterServers().addNodeAddress(
+                process.getNodes().stream().findAny().get().getRedisServerAddressAndPort());
+
+        final RedissonClient redisson = Redisson.create(config);
+
+        final AtomicInteger subscriptions = new AtomicInteger();
+        final AtomicInteger messagesReceived = new AtomicInteger();
+
+        final RPatternTopic topic =
+                redisson.getPatternTopic("__keyspace*__:i*", StringCodec.INSTANCE);
+        topic.addListener(new PatternStatusListener() {
+            @Override
+            public void onPUnsubscribe(String pattern) {}
+
+            @Override
+            public void onPSubscribe(String pattern) {
+                subscriptions.incrementAndGet();
+            }
+        });
+        topic.addListener(String.class,
+                (pattern, channel, msg) -> messagesReceived.incrementAndGet());
+        Assert.assertEquals(1, subscriptions.get());
+
+        sendCommands(redisson, "dummy").join();
+        await().atMost(30, TimeUnit.SECONDS).until(() -> messagesReceived.get() == 100);
+
+        failover(process, master, slave);
+
+        redisson.getBucket("i100").set("");
+        await().atMost(30, TimeUnit.SECONDS).until(() -> subscriptions.get() == 2);
+        await().atMost(5, TimeUnit.SECONDS).until(() -> messagesReceived.get() == 101);
+
+        redisson.shutdown();
+        process.shutdown();
+    }
+
+    private void failover(ClusterProcesses processes, RedisRunner master, RedisRunner slave)
+            throws InterruptedException {
+        final RedisClient masterClient = connect(processes, master);
+        try {
+            masterClient.connect().sync(new RedisStrictCommand<Void>("DEBUG", "SEGFAULT"));
+        } catch (RedisTimeoutException e) {
+            // node goes down, so this command times out waiting for the response
+        }
+        Thread.sleep(java.time.Duration.ofSeconds(15).toMillis());
+
+        final RedisClient slaveClient = connect(processes, slave);
+        slaveClient.connect().sync(new RedisStrictCommand<Void>("CLUSTER", "FAILOVER"), "TAKEOVER");
+        Thread.sleep(java.time.Duration.ofSeconds(15).toMillis());
+    }
+
+    private RedisClient connect(ClusterProcesses processes, RedisRunner runner) {
+        return RedisClient.create(new RedisClientConfig()
+                .setAddress(processes.getNodes().stream()
+                        .filter(node -> node.getRedisServerPort() == runner.getPort())
+                        .findFirst()
+                        .map(RedisProcess::getRedisServerAddressAndPort)
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Failed to find node running at port: " + runner.getPort()
+                                        + " in cluster processes"))));
+    }
 }

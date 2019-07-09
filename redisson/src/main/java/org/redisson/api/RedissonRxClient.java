@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.redisson.api;
 
 import org.redisson.client.codec.Codec;
-import org.redisson.codec.ReferenceCodecProvider;
 import org.redisson.config.Config;
 
 /**
@@ -126,6 +125,22 @@ public interface RedissonRxClient {
      * @return Lock object
      */
     RLockRx getLock(String name);
+    
+    /**
+     * Returns MultiLock instance associated with specified <code>locks</code>
+     * 
+     * @param locks - collection of locks
+     * @return MultiLock object
+     */
+    RLockRx getMultiLock(RLock... locks);
+    
+    /**
+     * Returns RedLock instance associated with specified <code>locks</code>
+     * 
+     * @param locks - collection of locks
+     * @return RedLock object
+     */
+    RLockRx getRedLock(RLock... locks);
     
     /**
      * Returns set-based cache instance by <code>name</code>.
@@ -479,6 +494,25 @@ public interface RedissonRxClient {
     <V> RQueueRx<V> getQueue(String name, Codec codec);
 
     /**
+     * Returns RingBuffer based queue.
+     * 
+     * @param <V> value type
+     * @param name - name of object
+     * @return RingBuffer object
+     */
+    <V> RRingBufferRx<V> getRingBuffer(String name);
+    
+    /**
+     * Returns RingBuffer based queue.
+     * 
+     * @param <V> value type
+     * @param name - name of object
+     * @param codec - codec for values
+     * @return RingBuffer object
+     */
+    <V> RRingBufferRx<V> getRingBuffer(String name, Codec codec);
+    
+    /**
      * Returns blocking queue instance by name.
      * 
      * @param <V> type of values
@@ -555,6 +589,40 @@ public interface RedissonRxClient {
     RAtomicDoubleRx getAtomicDouble(String name);
 
     /**
+     * Returns object for remote operations prefixed with the default name (redisson_remote_service)
+     * 
+     * @return RemoteService object
+     */
+    RRemoteService getRemoteService();
+    
+    /**
+     * Returns object for remote operations prefixed with the default name (redisson_remote_service)
+     * and uses provided codec for method arguments and result.
+     * 
+     * @param codec - codec for response and request
+     * @return RemoteService object
+     */
+    RRemoteService getRemoteService(Codec codec);
+
+    /**
+     * Returns object for remote operations prefixed with the specified name
+     *
+     * @param name - the name used as the Redis key prefix for the services
+     * @return RemoteService object
+     */
+    RRemoteService getRemoteService(String name);
+    
+    /**
+     * Returns object for remote operations prefixed with the specified name
+     * and uses provided codec for method arguments and result.
+     *
+     * @param name - the name used as the Redis key prefix for the services
+     * @param codec - codec for response and request
+     * @return RemoteService object
+     */
+    RRemoteService getRemoteService(String name, Codec codec);
+    
+    /**
      * Returns bitSet instance by name.
      *
      * @param name - name of object
@@ -597,6 +665,16 @@ public interface RedissonRxClient {
     RBatchRx createBatch(BatchOptions options);
 
     /**
+     * Return batch object which executes group of
+     * command in pipeline.
+     *
+     * See <a href="http://redis.io/topics/pipelining">http://redis.io/topics/pipelining</a>
+     *
+     * @return Batch object
+     */
+    RBatchRx createBatch();
+
+    /**
      * Returns keys operations.
      * Each of Redis/Redisson object associated with own key
      *
@@ -617,13 +695,6 @@ public interface RedissonRxClient {
      * @return Config object
      */
     Config getConfig();
-    
-    /**
-     * Returns the CodecProvider instance
-     * 
-     * @return CodecProvider object
-     */
-    ReferenceCodecProvider getCodecProvider();
     
     /**
      * Get Redis nodes group for server operations

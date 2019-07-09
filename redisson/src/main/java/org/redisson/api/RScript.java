@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public interface RScript extends RScriptAsync {
         MAPVALUE(RedisCommands.EVAL_MAP_VALUE),
         MAPVALUELIST(RedisCommands.EVAL_MAP_VALUE_LIST);
 
-        RedisCommand<?> command;
+        private final RedisCommand<?> command;
 
         ReturnType(RedisCommand<?> command) {
             this.command = command;
@@ -166,7 +166,7 @@ public interface RScript extends RScriptAsync {
      * @param shaDigests - collection of SHA-1 digests
      * @return list of booleans corresponding to collection SHA-1 digests
      */
-    List<Boolean> scriptExists(String ... shaDigests);
+    List<Boolean> scriptExists(String... shaDigests);
 
     /**
      * Kills currently executed Lua script

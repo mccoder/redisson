@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  */
 package org.redisson.rx;
 
-import java.util.concurrent.Callable;
-
 import org.redisson.api.RBlockingQueueAsync;
-import org.redisson.api.RFuture;
 import org.redisson.api.RListAsync;
 
 import io.reactivex.Flowable;
@@ -39,11 +36,8 @@ public class RedissonBlockingQueueRx<V> extends RedissonListRx<V> {
     }
 
     public Flowable<V> takeElements() {
-        return ElementsStream.takeElements(new Callable<RFuture<V>>() {
-            @Override
-            public RFuture<V> call() throws Exception {
-                return queue.takeAsync();
-            }
+        return ElementsStream.takeElements(() -> {
+            return queue.takeAsync();
         });
     }
     

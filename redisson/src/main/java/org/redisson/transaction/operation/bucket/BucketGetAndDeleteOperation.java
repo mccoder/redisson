@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import org.redisson.RedissonBucket;
 import org.redisson.RedissonLock;
 import org.redisson.client.codec.Codec;
 import org.redisson.command.CommandAsyncExecutor;
+import org.redisson.transaction.RedissonTransactionalLock;
 import org.redisson.transaction.operation.TransactionalOperation;
 
 /**
@@ -30,23 +31,25 @@ import org.redisson.transaction.operation.TransactionalOperation;
 public class BucketGetAndDeleteOperation<V> extends TransactionalOperation {
 
     private String lockName;
+    private String transactionId;
     
-    public BucketGetAndDeleteOperation(String name, String lockName, Codec codec) {
+    public BucketGetAndDeleteOperation(String name, String lockName, Codec codec, String transactionId) {
         super(name, codec);
         this.lockName = lockName;
+        this.transactionId = transactionId;
     }
 
     @Override
     public void commit(CommandAsyncExecutor commandExecutor) {
         RedissonBucket<V> bucket = new RedissonBucket<V>(codec, commandExecutor, name);
         bucket.getAndDeleteAsync();
-        RedissonLock lock = new RedissonLock(commandExecutor, lockName);
+        RedissonLock lock = new RedissonTransactionalLock(commandExecutor, lockName, transactionId);
         lock.unlockAsync();
     }
 
     @Override
     public void rollback(CommandAsyncExecutor commandExecutor) {
-        RedissonLock lock = new RedissonLock(commandExecutor, lockName);
+        RedissonLock lock = new RedissonTransactionalLock(commandExecutor, lockName, transactionId);
         lock.unlockAsync();
     }
     

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,6 @@ package org.redisson.tomcat;
 public class AttributesClearMessage extends AttributeMessage {
 
     public AttributesClearMessage() {
-    }
-
-    public AttributesClearMessage(String sessionId) {
-        super(sessionId);
     }
 
     public AttributesClearMessage(String nodeId, String sessionId) {

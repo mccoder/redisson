@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,20 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.LongConsumer;
-import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import org.redisson.RedissonKeys;
 import org.redisson.client.RedisClient;
-import org.redisson.client.codec.StringCodec;
-import org.redisson.client.protocol.RedisCommands;
-import org.redisson.client.protocol.decoder.ListScanResult;
 import org.redisson.connection.MasterSlaveEntry;
 
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.FutureListener;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
@@ -43,11 +35,11 @@ import reactor.core.publisher.FluxSink;
  */
 public class RedissonKeysReactive {
 
-    private final CommandReactiveService commandExecutor;
+    private final CommandReactiveExecutor commandExecutor;
 
     private final RedissonKeys instance;
 
-    public RedissonKeysReactive(CommandReactiveService commandExecutor) {
+    public RedissonKeysReactive(CommandReactiveExecutor commandExecutor) {
         super();
         instance = new RedissonKeys(commandExecutor);
         this.commandExecutor = commandExecutor;
@@ -85,49 +77,43 @@ public class RedissonKeysReactive {
                     }
                     
                     protected void nextValues(FluxSink<String> emitter) {
-                        instance.scanIteratorAsync(client, entry, nextIterPos, pattern, count).addListener(new FutureListener<ListScanResult<Object>>() {
-
-                            @Override
-                            public void operationComplete(Future<ListScanResult<Object>> future) throws Exception {
-                                if (!future.isSuccess()) {
-                                    emitter.error(future.cause());
-                                    return;
-                                }
-                                
-                                ListScanResult<Object> res = future.get();
-                                client = res.getRedisClient();
-                                long prevIterPos = nextIterPos;
-                                if (nextIterPos == 0 && firstValues == null) {
-                                    firstValues = (List<String>)(Object)res.getValues();
-                                } else if (res.getValues().equals(firstValues)) {
-                                    emitter.complete();
-                                    currentIndex = 0;
-                                    return;
-                                }
-
-                                nextIterPos = res.getPos();
-                                if (prevIterPos == nextIterPos) {
-                                    nextIterPos = -1;
-                                }
-                                for (Object val : res.getValues()) {
-                                    emitter.next((String)val);
-                                    currentIndex--;
-                                    if (currentIndex == 0) {
-                                        emitter.complete();
-                                        return;
-                                    }
-                                }
-                                if (nextIterPos == -1) {
-                                    emitter.complete();
-                                    currentIndex = 0;
-                                }
-                                
-                                if (currentIndex == 0) {
-                                    return;
-                                }
-                                nextValues(emitter);
+                        instance.scanIteratorAsync(client, entry, nextIterPos, pattern, count).onComplete((res, e) -> {
+                            if (e != null) {
+                                emitter.error(e);
+                                return;
                             }
                             
+                            client = res.getRedisClient();
+                            long prevIterPos = nextIterPos;
+                            if (nextIterPos == 0 && firstValues == null) {
+                                firstValues = (List<String>) (Object) res.getValues();
+                            } else if (res.getValues().equals(firstValues)) {
+                                emitter.complete();
+                                currentIndex = 0;
+                                return;
+                            }
+
+                            nextIterPos = res.getPos();
+                            if (prevIterPos == nextIterPos) {
+                                nextIterPos = -1;
+                            }
+                            for (Object val : res.getValues()) {
+                                emitter.next((String) val);
+                                currentIndex--;
+                                if (currentIndex == 0) {
+                                    emitter.complete();
+                                    return;
+                                }
+                            }
+                            if (nextIterPos == -1) {
+                                emitter.complete();
+                                currentIndex = 0;
+                            }
+                            
+                            if (currentIndex == 0) {
+                                return;
+                            }
+                            nextValues(emitter);
                         });
                     }
 

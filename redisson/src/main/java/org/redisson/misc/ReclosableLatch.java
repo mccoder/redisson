@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * @author Manik Surtani (<a href="mailto:manik@jboss.org">manik@jboss.org</a>)
  * @since 4.0
  */
+@SuppressWarnings({"MultipleVariableDeclarations", "AvoidInlineConditionals", "UpperEll"})
 public class ReclosableLatch extends AbstractQueuedSynchronizer {
 
    private static final long serialVersionUID = 1744280161777661090l;

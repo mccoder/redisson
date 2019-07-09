@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.redisson.hibernate.strategy;
 
 import org.hibernate.cache.CacheException;
-import org.hibernate.cache.internal.DefaultCacheKeysFactory;
 import org.hibernate.cache.spi.GeneralDataRegion;
 import org.hibernate.cache.spi.NaturalIdRegion;
 import org.hibernate.cache.spi.access.NaturalIdRegionAccessStrategy;
@@ -24,6 +23,7 @@ import org.hibernate.cache.spi.access.SoftLock;
 import org.hibernate.cfg.Settings;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.persister.entity.EntityPersister;
+import org.redisson.hibernate.region.RedissonNaturalIdRegion;
 
 /**
  * 
@@ -90,12 +90,12 @@ public class ReadOnlyNaturalIdRegionAccessStrategy extends BaseRegionAccessStrat
 
     @Override
     public Object generateCacheKey(Object[] naturalIdValues, EntityPersister persister, SharedSessionContractImplementor session) {
-        return DefaultCacheKeysFactory.staticCreateNaturalIdKey(naturalIdValues, persister, session);
+        return ((RedissonNaturalIdRegion)region).getCacheKeysFactory().createNaturalIdKey(naturalIdValues, persister, session);
     }
 
     @Override
     public Object[] getNaturalIdValues(Object cacheKey) {
-        return DefaultCacheKeysFactory.staticGetNaturalIdValues(cacheKey);
+        return ((RedissonNaturalIdRegion)region).getCacheKeysFactory().getNaturalIdValues(cacheKey);
     }
 
 }

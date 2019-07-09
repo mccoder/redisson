@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.LongConsumer;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 import org.redisson.api.RFuture;
 import org.redisson.client.RedisClient;
 import org.redisson.client.protocol.decoder.ListScanResult;
 
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.FutureListener;
 import reactor.core.publisher.FluxSink;
 
 /**
@@ -59,45 +55,41 @@ public abstract class SetReactiveIterator<V> implements Consumer<FluxSink<V>> {
             }
             
             protected void nextValues(FluxSink<V> emitter) {
-                scanIterator(client, nextIterPos).addListener(new FutureListener<ListScanResult<Object>>() {
-                    @Override
-                    public void operationComplete(Future<ListScanResult<Object>> future) throws Exception {
-                        if (!future.isSuccess()) {
-                            emitter.error(future.cause());
-                            return;
-                        }
-                        
-                        if (finished) {
-                            client = null;
-                            nextIterPos = 0;
-                            return;
-                        }
-
-                        ListScanResult<Object> res = future.getNow();
-                        client = res.getRedisClient();
-                        nextIterPos = res.getPos();
-
-                        for (Object val : res.getValues()) {
-                            emitter.next((V)val);
-                            elementsRead.incrementAndGet();
-                        }
-                        
-                        if (elementsRead.get() >= readAmount.get()) {
-                            emitter.complete();
-                            elementsRead.set(0);
-                            completed = true;
-                            return;
-                        }
-                        if (res.getPos() == 0 && !tryAgain()) {
-                            finished = true;
-                            emitter.complete();
-                        }
-                        
-                        if (finished || completed) {
-                            return;
-                        }
-                        nextValues(emitter);
+                scanIterator(client, nextIterPos).onComplete((res, e) -> {
+                    if (e != null) {
+                        emitter.error(e);
+                        return;
                     }
+                    
+                    if (finished) {
+                        client = null;
+                        nextIterPos = 0;
+                        return;
+                    }
+
+                    client = res.getRedisClient();
+                    nextIterPos = res.getPos();
+
+                    for (Object val : res.getValues()) {
+                        emitter.next((V) val);
+                        elementsRead.incrementAndGet();
+                    }
+                    
+                    if (elementsRead.get() >= readAmount.get()) {
+                        emitter.complete();
+                        elementsRead.set(0);
+                        completed = true;
+                        return;
+                    }
+                    if (res.getPos() == 0 && !tryAgain()) {
+                        finished = true;
+                        emitter.complete();
+                    }
+                    
+                    if (finished || completed) {
+                        return;
+                    }
+                    nextValues(emitter);
                 });
             }
         });

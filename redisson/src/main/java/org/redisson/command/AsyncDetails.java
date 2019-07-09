@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.redisson.command;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.BiConsumer;
 
 import org.redisson.api.RFuture;
 import org.redisson.client.RedisConnection;
@@ -28,12 +28,8 @@ import org.redisson.misc.RPromise;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.util.Timeout;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.FutureListener;
 
 public class AsyncDetails<V, R> {
-
-    static final ConcurrentLinkedQueue<AsyncDetails> queue = new ConcurrentLinkedQueue<AsyncDetails>();
 
     RFuture<RedisConnection> connectionFuture;
     ConnectionManager connectionManager;
@@ -45,7 +41,7 @@ public class AsyncDetails<V, R> {
     Object[] params;
     RPromise<R> mainPromise;
     int attempt;
-    FutureListener<R> mainPromiseListener;
+    volatile BiConsumer<R, Throwable> mainPromiseListener;
 
     private volatile ChannelFuture writeFuture;
 
@@ -148,16 +144,17 @@ public class AsyncDetails<V, R> {
         attempt++;
     }
 
-    public void setupMainPromiseListener(FutureListener<R> mainPromiseListener) {
+    public void setupMainPromiseListener(BiConsumer<R, Throwable> mainPromiseListener) {
         this.mainPromiseListener = mainPromiseListener;
-        mainPromise.addListener(mainPromiseListener);
+        mainPromise.onComplete((r, e) -> {
+            if (this.mainPromiseListener != null) {
+                this.mainPromiseListener.accept(r, e);
+            }
+        });
     }
     
     public void removeMainPromiseListener() {
-        if (mainPromiseListener != null) {
-            mainPromise.removeListener(mainPromiseListener);
-            mainPromiseListener = null;
-        }
+        mainPromiseListener = null;
     }
 
 }

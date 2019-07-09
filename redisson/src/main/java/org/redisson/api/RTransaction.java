@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,22 @@ public interface RTransaction {
      */
     <V> RBucket<V> getBucket(String name, Codec codec);
 
+    /**
+     * Returns transactional interface for mass operations with Bucket objects.
+     *
+     * @return Buckets
+     */
+    RBuckets getBuckets();
+    
+    /**
+     * Returns transactional interface for mass operations with Bucket objects
+     * using provided codec for object.
+     *
+     * @param codec - codec for bucket objects
+     * @return Buckets
+     */
+    RBuckets getBuckets(Codec codec);
+    
     /**
      * Returns transactional map instance by name.
      *

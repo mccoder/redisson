@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,10 @@ import io.netty.buffer.ByteBuf;
  */
 public class MapCacheEventCodec implements Codec {
 
+    public enum OSType {WINDOWS, HPNONSTOP}
+    
     private final Codec codec;
-    private final boolean isWindows;
+    private final OSType osType;
     
     private final Decoder<Object> decoder = new Decoder<Object>() {
         @Override
@@ -56,10 +58,19 @@ public class MapCacheEventCodec implements Codec {
         }
     };
 
-    public MapCacheEventCodec(Codec codec, boolean isWindows) {
+    public MapCacheEventCodec(Codec codec, OSType osType) {
         super();
         this.codec = codec;
-        this.isWindows = isWindows;
+        this.osType = osType;
+    }
+    
+    public MapCacheEventCodec(ClassLoader classLoader, MapCacheEventCodec codec) {
+        try {
+            this.codec = codec.codec.getClass().getConstructor(ClassLoader.class, codec.codec.getClass()).newInstance(classLoader, codec.codec);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+        this.osType = codec.osType;
     }
 
     @Override
@@ -94,8 +105,10 @@ public class MapCacheEventCodec implements Codec {
 
     private Object decode(ByteBuf buf, State state, Decoder<?> decoder) throws IOException {
         int keyLen;
-        if (isWindows) {
+        if (osType == OSType.WINDOWS) {
             keyLen = buf.readIntLE();
+        } else if (osType == OSType.HPNONSTOP) {
+            keyLen = (int) buf.readLong();
         } else {
             keyLen = (int) buf.readLongLE();
         }
@@ -107,6 +120,35 @@ public class MapCacheEventCodec implements Codec {
     @Override
     public ClassLoader getClassLoader() {
         return getClass().getClassLoader();
+    }
+
+    @Override
+    @SuppressWarnings("AvoidInlineConditionals")
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((codec == null) ? 0 : codec.hashCode());
+        result = prime * result + ((osType == null) ? 0 : osType.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        MapCacheEventCodec other = (MapCacheEventCodec) obj;
+        if (codec == null) {
+            if (other.codec != null)
+                return false;
+        } else if (!codec.equals(other.codec))
+            return false;
+        if (osType != other.osType)
+            return false;
+        return true;
     }
 
 }

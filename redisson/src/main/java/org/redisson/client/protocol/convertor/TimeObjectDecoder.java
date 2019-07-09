@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ public class TimeObjectDecoder implements MultiDecoder<Time> {
 
     @Override
     public Time decode(List<Object> parts, State state) {
-        return new Time(((Long)parts.get(0)).intValue(), ((Long)parts.get(1)).intValue());
+        return new Time(((Long) parts.get(0)).intValue(), ((Long) parts.get(1)).intValue());
     }
     
 }

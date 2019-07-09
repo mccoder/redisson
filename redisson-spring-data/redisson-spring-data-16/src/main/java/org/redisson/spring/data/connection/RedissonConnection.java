@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 
 import org.redisson.Redisson;
 import org.redisson.SlotCallback;
@@ -87,9 +88,6 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
-
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.FutureListener;
 
 /**
  * Redisson connection
@@ -271,20 +269,20 @@ public class RedissonConnection extends AbstractRedisConnection {
         final AtomicReference<Throwable> failed = new AtomicReference<Throwable>();
         final AtomicLong count = new AtomicLong();
         final AtomicLong executed = new AtomicLong(range2key.size());
-        FutureListener<List<?>> listener = new FutureListener<List<?>>() {
+        BiConsumer<List<?>, Throwable> listener = new BiConsumer<List<?>, Throwable>() {
             @Override
-            public void operationComplete(Future<List<?>> future) throws Exception {
-                if (future.isSuccess()) {
-                    List<Long> result = (List<Long>) future.get();
+            public void accept(List<?> r, Throwable u) {
+                if (u == null) {    
+                    List<Long> result = (List<Long>) r;
                     for (Long res : result) {
                         if (res != null) {
                             count.addAndGet(res);
                         }
                     }
                 } else {
-                    failed.set(future.cause());
+                    failed.set(u);
                 }
-
+                
                 checkExecution(result, failed, count, executed);
             }
         };
@@ -296,7 +294,7 @@ public class RedissonConnection extends AbstractRedisConnection {
             }
 
             RFuture<List<?>> future = es.executeAsync();
-            future.addListener(listener);
+            future.onComplete(listener);
         }
 
         return result;
@@ -324,7 +322,7 @@ public class RedissonConnection extends AbstractRedisConnection {
         }
 
         Set<byte[]> results = new HashSet<byte[]>();
-        RFuture<Set<byte[]>> f = (RFuture<Set<byte[]>>)(Object)(executorService.readAllAsync(results, KEYS, pattern));
+        RFuture<Set<byte[]>> f = (RFuture<Set<byte[]>>)(Object)(executorService.readAllAsync(results, ByteArrayCodec.INSTANCE, KEYS, pattern));
         return sync(f);
     }
 
@@ -1099,7 +1097,7 @@ public class RedissonConnection extends AbstractRedisConnection {
         return read(key, ByteArrayCodec.INSTANCE, ZREVRANGE, key, start, end);
     }
 
-    private static final RedisCommand<Set<Tuple>> ZREVRANGE_ENTRY = new RedisCommand<Set<Tuple>>("ZRANGE", new ScoredSortedSetReplayDecoder());
+    private static final RedisCommand<Set<Tuple>> ZREVRANGE_ENTRY = new RedisCommand<Set<Tuple>>("ZREVRANGE", new ScoredSortedSetReplayDecoder());
     
     @Override
     public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {

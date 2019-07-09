@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -441,7 +441,7 @@ public interface RedissonClient {
     RPermitExpirableSemaphore getPermitExpirableSemaphore(String name);
 
     /**
-     * Returns lock instance by name.
+     * Returns Lock instance by name.
      * <p>
      * Implements a <b>non-fair</b> locking so doesn't guarantees an acquire order by threads.
      *
@@ -451,7 +451,23 @@ public interface RedissonClient {
     RLock getLock(String name);
 
     /**
-     * Returns lock instance by name.
+     * Returns MultiLock instance associated with specified <code>locks</code>
+     * 
+     * @param locks - collection of locks
+     * @return MultiLock object
+     */
+    RLock getMultiLock(RLock... locks);
+    
+    /**
+     * Returns RedLock instance associated with specified <code>locks</code>
+     * 
+     * @param locks - collection of locks
+     * @return RedLock object
+     */
+    RLock getRedLock(RLock... locks);
+    
+    /**
+     * Returns Lock instance by name.
      * <p>
      * Implements a <b>fair</b> locking so it guarantees an acquire order by threads.
      * 
@@ -461,7 +477,7 @@ public interface RedissonClient {
     RLock getFairLock(String name);
     
     /**
-     * Returns readWriteLock instance by name.
+     * Returns ReadWriteLock instance by name.
      *
      * @param name - name of object
      * @return Lock object
@@ -619,6 +635,25 @@ public interface RedissonClient {
      * @return Queue object
      */
     <V> RQueue<V> getQueue(String name, Codec codec);
+    
+    /**
+     * Returns RingBuffer based queue.
+     * 
+     * @param <V> value type
+     * @param name - name of object
+     * @return RingBuffer object
+     */
+    <V> RRingBuffer<V> getRingBuffer(String name);
+    
+    /**
+     * Returns RingBuffer based queue.
+     * 
+     * @param <V> value type
+     * @param name - name of object
+     * @param codec - codec for values
+     * @return RingBuffer object
+     */
+    <V> RRingBuffer<V> getRingBuffer(String name, Codec codec);
 
     /**
      * Returns priority unbounded queue instance by name.
@@ -978,11 +1013,14 @@ public interface RedissonClient {
      */
     RBatch createBatch(BatchOptions options);
 
-    /*
-     * Use #createBatch(BatchOptions)
-     * 
+    /**
+     * Creates batch object which could be executed later 
+     * with collected group of commands in pipeline mode.
+     * <p>
+     * See <a href="http://redis.io/topics/pipelining">http://redis.io/topics/pipelining</a>
+     *
+     * @return Batch object
      */
-    @Deprecated
     RBatch createBatch();
     
     /**

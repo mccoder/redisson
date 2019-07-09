@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import org.redisson.command.CommandBatchService;
 public class RedissonBitSet extends RedissonExpirable implements RBitSet {
 
     public RedissonBitSet(CommandAsyncExecutor connectionManager, String name) {
-        super(connectionManager, name);
+        super(null, connectionManager, name);
     }
 
     @Override
@@ -83,7 +83,16 @@ public class RedissonBitSet extends RedissonExpirable implements RBitSet {
 
     @Override
     public RFuture<Boolean> setAsync(long bitIndex, boolean value) {
-        return commandExecutor.writeAsync(getName(), LongCodec.INSTANCE, RedisCommands.SETBIT, getName(), bitIndex, value ? 1 : 0);
+        int val = toInt(value);
+        return commandExecutor.writeAsync(getName(), LongCodec.INSTANCE, RedisCommands.SETBIT, getName(), bitIndex, val);
+    }
+
+    protected int toInt(boolean value) {
+        int val = 0;
+        if (value) {
+            val = 1;
+        }
+        return val;
     }
 
     @Override
@@ -147,7 +156,7 @@ public class RedissonBitSet extends RedissonExpirable implements RBitSet {
         params.add(getName());
         params.add(getName());
         params.addAll(Arrays.asList(bitSetNames));
-        return commandExecutor.writeAsync(getName(), codec, RedisCommands.BITOP, params.toArray());
+        return commandExecutor.writeAsync(getName(), StringCodec.INSTANCE, RedisCommands.BITOP, params.toArray());
     }
 
     @Override
@@ -157,6 +166,10 @@ public class RedissonBitSet extends RedissonExpirable implements RBitSet {
 
     //Copied from: https://github.com/xetorthio/jedis/issues/301
     private static BitSet fromByteArrayReverse(byte[] bytes) {
+        if (bytes == null) {
+            return new BitSet();
+        }
+
         BitSet bits = new BitSet();
         for (int i = 0; i < bytes.length * 8; i++) {
             if ((bytes[i / 8] & (1 << (7 - (i % 8)))) != 0) {
@@ -185,7 +198,7 @@ public class RedissonBitSet extends RedissonExpirable implements RBitSet {
 
     @Override
     public RFuture<Long> lengthAsync() {
-        return commandExecutor.evalReadAsync(getName(), codec, RedisCommands.EVAL_LONG,
+        return commandExecutor.evalReadAsync(getName(), LongCodec.INSTANCE, RedisCommands.EVAL_LONG,
                 "local fromBit = redis.call('bitpos', KEYS[1], 1, -1);"
                 + "local toBit = 8*(fromBit/8 + 1) - fromBit % 8;"
                         + "for i = toBit, fromBit, -1 do "
@@ -199,9 +212,10 @@ public class RedissonBitSet extends RedissonExpirable implements RBitSet {
 
     @Override
     public RFuture<Void> setAsync(long fromIndex, long toIndex, boolean value) {
+        int val = toInt(value);
         CommandBatchService executorService = new CommandBatchService(commandExecutor.getConnectionManager());
         for (long i = fromIndex; i < toIndex; i++) {
-            executorService.writeAsync(getName(), LongCodec.INSTANCE, RedisCommands.SETBIT_VOID, getName(), i, value ? 1 : 0);
+            executorService.writeAsync(getName(), LongCodec.INSTANCE, RedisCommands.SETBIT_VOID, getName(), i, val);
         }
         return executorService.executeAsyncVoid();
     }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,11 @@
  */
 package org.redisson.tomcat;
 
+import java.io.IOException;
+
+import org.redisson.client.protocol.Decoder;
+import org.redisson.client.protocol.Encoder;
+
 /**
  * 
  * @author Nikita Koksharov
@@ -23,29 +28,23 @@ package org.redisson.tomcat;
 public class AttributeUpdateMessage extends AttributeMessage {
 
     private String name;
-    private Object value;
+    private byte[] value;
 
     public AttributeUpdateMessage() {
     }
     
-    public AttributeUpdateMessage(String sessionId, String name, Object value) {
-        super(sessionId);
-        this.name = name;
-        this.value = value;
-    }
-
-    public AttributeUpdateMessage(String nodeId, String sessionId, String name, Object value) {
+    public AttributeUpdateMessage(String nodeId, String sessionId, String name, Object value, Encoder encoder) throws IOException {
         super(nodeId, sessionId);
         this.name = name;
-        this.value = value;
+		this.value = toByteArray(encoder, value);
     }
 
     public String getName() {
         return name;
     }
     
-    public Object getValue() {
-        return value;
+    public Object getValue(Decoder<?> decoder) throws IOException, ClassNotFoundException {
+    	return toObject(decoder, value);
     }
     
 }

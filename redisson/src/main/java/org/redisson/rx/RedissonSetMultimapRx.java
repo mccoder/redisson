@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class RedissonSetMultimapRx<K, V> {
     }
 
     public RSetRx<V> get(K key) {
-        RedissonSet<V> set = (RedissonSet<V>) ((RSetMultimap<K, V>)instance).get(key);
+        RedissonSet<V> set = (RedissonSet<V>) ((RSetMultimap<K, V>) instance).get(key);
         return RxProxyBuilder.create(commandExecutor, set, 
                 new RedissonSetRx<V>(set, redisson), RSetRx.class);
     }

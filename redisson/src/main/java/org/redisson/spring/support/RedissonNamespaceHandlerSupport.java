@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Nikita Koksharov
+ * Copyright (c) 2013-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,7 @@ public class RedissonNamespaceHandlerSupport extends NamespaceHandlerSupport {
                 = new RedissonNestedElementAwareDecorator(
                         new String[]{
                             RedissonNamespaceParserSupport.READ_LOCK_ELEMENT,
-                            RedissonNamespaceParserSupport.WRITE_LOCK_ELEMENT
-                        },
+                            RedissonNamespaceParserSupport.WRITE_LOCK_ELEMENT},
                         RedissonNamespaceParserSupport.READ_WRITE_LOCK_REF_ATTRIBUTE);
         
         RedissonGenericObjectDefinitionParser readWriteLockParser
@@ -53,8 +52,7 @@ public class RedissonNamespaceHandlerSupport extends NamespaceHandlerSupport {
                 = new RedissonNestedElementAwareDecorator(
                         new String[]{
                             RedissonNamespaceParserSupport.RPC_SERVER_ELEMENT,
-                            RedissonNamespaceParserSupport.RPC_CLIENT_ELEMENT
-                        },
+                            RedissonNamespaceParserSupport.RPC_CLIENT_ELEMENT},
                         RedissonNamespaceParserSupport.REMOTE_SERVICE_REF_ATTRIBUTE);
         
         RedissonGenericObjectDefinitionParser remoteServiceParser
@@ -65,8 +63,7 @@ public class RedissonNamespaceHandlerSupport extends NamespaceHandlerSupport {
                 = new RedissonNestedElementAwareDecorator(
                         new String[]{
                             RedissonNamespaceParserSupport.LIVE_OBJECT_ELEMENT,
-                            RedissonNamespaceParserSupport.LIVE_OBJECT_REGISTRATION_ELEMENT
-                        },
+                            RedissonNamespaceParserSupport.LIVE_OBJECT_REGISTRATION_ELEMENT},
                         RedissonNamespaceParserSupport.LIVE_OBJECT_SERVICE_REF_ATTRIBUTE);
         
         RedissonGenericObjectDefinitionParser liveObjectServiceParser
@@ -98,7 +95,7 @@ public class RedissonNamespaceHandlerSupport extends NamespaceHandlerSupport {
         registerBeanDefinitionParser("permit-expirable-semaphore", defaultParser);
         registerBeanDefinitionParser("lock", defaultParser);
         registerBeanDefinitionParser("fair-lock", defaultParser);
-        registerBeanDefinitionParser("read-write-lock",readWriteLockParser);
+        registerBeanDefinitionParser("read-write-lock", readWriteLockParser);
         registerBeanDefinitionParser("read-lock", readAndWriteLockParser);
         registerBeanDefinitionParser("write-lock", readAndWriteLockParser);
         registerBeanDefinitionParser("multi-lock", nestedParser);
@@ -126,7 +123,7 @@ public class RedissonNamespaceHandlerSupport extends NamespaceHandlerSupport {
         registerBeanDefinitionParser("bit-set", defaultParser);
         registerBeanDefinitionParser("bloom-filter", defaultParser);
         registerBeanDefinitionParser("script", defaultParser);
-        registerBeanDefinitionParser("executor-service", defaultParser);//nested unfinished
+        registerBeanDefinitionParser("executor-service", defaultParser); //nested unfinished
         registerBeanDefinitionParser("remote-service", remoteServiceParser);
         registerBeanDefinitionParser("rpc-server",
                 new RedissonRPCServerDefinitionParser(helper));
