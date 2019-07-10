@@ -268,7 +268,7 @@ public class RedissonSession extends StandardSession {
         super.setMaxInactiveInterval(interval);
         
         if (map != null) {
-            fastPut(MAX_INACTIVE_INTERVAL_ATTR, maxInactiveInterval);
+            fastPut(MAX_INACTIVE_INTERVAL_ATTR, Long.valueOf(maxInactiveInterval));
             expireSession();
         }
     }
@@ -394,7 +394,7 @@ public class RedissonSession extends StandardSession {
         newMap.put(CREATION_TIME_ATTR, creationTime);
         newMap.put(LAST_ACCESSED_TIME_ATTR, lastAccessedTime);
         newMap.put(THIS_ACCESSED_TIME_ATTR, thisAccessedTime);
-        newMap.put(MAX_INACTIVE_INTERVAL_ATTR, maxInactiveInterval);
+        newMap.put(MAX_INACTIVE_INTERVAL_ATTR, Long.valueOf(maxInactiveInterval));
         newMap.put(IS_VALID_ATTR, isValid);
         newMap.put(IS_NEW_ATTR, isNew);
         if (broadcastSessionEvents) {
@@ -424,6 +424,15 @@ public class RedissonSession extends StandardSession {
 
         expireSession();
     }
+
+    private Integer safeToint(Object value){
+        if(value instanceof Integer) {
+            return (Integer) value;
+        } else if (value instanceof Long){
+            return ((Long)value).intValue();
+        }
+        return 0;
+    }
     
     public void load(Map<String, Object> attrs) {
         Long creationTime = (Long) attrs.remove(CREATION_TIME_ATTR);
@@ -434,7 +443,7 @@ public class RedissonSession extends StandardSession {
         if (lastAccessedTime != null) {
             this.lastAccessedTime = lastAccessedTime;
         }
-        Integer maxInactiveInterval = (Integer) attrs.remove(MAX_INACTIVE_INTERVAL_ATTR);
+        Integer maxInactiveInterval = safeToint(attrs.remove(MAX_INACTIVE_INTERVAL_ATTR));
         if (maxInactiveInterval != null) {
             this.maxInactiveInterval = maxInactiveInterval;
         }
