@@ -123,10 +123,8 @@ public class RedissonSession extends StandardSession {
 
         if (requestCache != null) {
             final Object result = requestCache.get(name);
-            if (result != null) {
                 //LOG.info("Read from cache '" + name + "'");
-                return result;
-            }
+            return result;
         }
 
         if (redisReadMode) {
