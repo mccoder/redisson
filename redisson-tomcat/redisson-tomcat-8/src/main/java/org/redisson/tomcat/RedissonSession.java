@@ -86,7 +86,7 @@ public class RedissonSession extends StandardSession {
         super(manager);
         this.redissonManager = manager;
         this.readMode = readMode;
-        this.redisReadMode = readMode == ReadMode.REDIS;
+        this.redisReadMode = readMode == ReadMode.REDIS||readMode == ReadMode.CACHE_FIRST_THAN_REDIS;
         this.updateMode = updateMode;
         this.topic = redissonManager.getTopic();
         this.broadcastSessionEvents = broadcastSessionEvents;
